@@ -91,3 +91,7 @@ Admin pode selecionar e excluir chamados com confirmação. É necessário aplic
 ## Controle de tempo por chamado
 
 O administrador pode iniciar, pausar, retomar e finalizar o tempo gasto em cada atendimento, salvo no Supabase. O total aparece nos detalhes, na lista e no relatório PDF. **Execute a migração** `supabase/migrations/20261113_ticket_time_tracking.sql` no banco existente (não reaplique o schema.sql inteiro). Veja `docs/CONTROLE_TEMPO.md`. O funcionário pode avaliar o chamado resolvido na seção Avaliações.
+
+### Convite para avaliar chamados (v1.3.1)
+
+Se um usuário funcionário entrar e tiver chamado resolvido ainda sem avaliação, o GOATi Manager abre automaticamente o formulário de avaliação. Se fechar, a tela inicial mantém um lembrete com acesso direto à avaliação. O formulário aceita nota de 1 a 5 estrelas, confirmação da solução e comentário opcional. Não exige nova migração SQL além das migrações anteriores do sistema.

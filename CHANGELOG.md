@@ -1,3 +1,11 @@
+## v1.3.1 — Convite automático de avaliação
+
+- Funcionários recebem um convite para avaliar chamados resolvidos ainda sem avaliação ao entrar no sistema.
+- A tela inicial mostra lembrete permanente para chamados pendentes de avaliação, sem bloquear o uso.
+- Modal de avaliação com notas visuais de 1 a 5 estrelas, confirmação de resolução e comentário opcional.
+- O aviso aparece uma vez por chamado por sessão; o histórico e o acesso do administrador permanecem iguais.
+- Mantidos o cronômetro por chamado, as linhas clicáveis e os relatórios da versão 1.3.0.
+
 ## v1.3.0 — Controle de tempo e melhorias na navegação
 
 - Cronômetro por atendimento com início, pausa, retomada e finalização, salvo no Supabase.
