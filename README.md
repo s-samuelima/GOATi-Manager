@@ -95,3 +95,7 @@ O administrador pode iniciar, pausar, retomar e finalizar o tempo gasto em cada 
 ### Convite para avaliar chamados (v1.3.1)
 
 Se um usuário funcionário entrar e tiver chamado resolvido ainda sem avaliação, o GOATi Manager abre automaticamente o formulário de avaliação. Se fechar, a tela inicial mantém um lembrete com acesso direto à avaliação. O formulário aceita nota de 1 a 5 estrelas, confirmação da solução e comentário opcional. Não exige nova migração SQL além das migrações anteriores do sistema.
+
+### Alertas de cadastros pendentes (v1.3.2)
+
+O administrador vê o contador de pendências em **Usuários**, no topo do aplicativo e em um aviso com acesso direto. O sistema consulta novos cadastros a cada ~23 segundos **somente enquanto o GOATi Manager estiver aberto e online**. A mensagem interna oferece **Analisar cadastro** e a notificação do sistema operacional (caso habilitada no navegador) também leva ao painel de aprovação. A simples criação da conta não aprova o usuário. Não é preciso SQL adicional para este recurso.

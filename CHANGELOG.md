@@ -1,3 +1,12 @@
+## v1.3.2 — Avisos de novos cadastros pendentes
+
+- Administradores veem a quantidade de contas pendentes no menu Usuários, no topo e em uma faixa de aviso persistente.
+- Verificação de novos cadastros a cada 23 segundos enquanto a plataforma estiver aberta e online.
+- Novo cadastro gera alerta interno com botão para abrir diretamente a análise; notificação do navegador opcional com clique.
+- Contas pendentes aparecem primeiro na tabela Usuários, com botão Analisar cadastro.
+- Não há aprovação automática, envio de dados sensíveis em notificações nem migração SQL adicional.
+- Alertas de novos chamados e outras funcionalidades mantidos.
+
 ## v1.3.1 — Convite automático de avaliação
 
 - Funcionários recebem um convite para avaliar chamados resolvidos ainda sem avaliação ao entrar no sistema.
