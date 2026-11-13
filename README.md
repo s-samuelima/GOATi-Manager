@@ -13,7 +13,7 @@
 - Diário de atividades, avaliações e relatórios PDF.
 - Modo demonstração local, PWA, tema claro/escuro e recursos de uso offline.
 
-**Versão:** 1.2.1 — correção do erro `e is not defined` no formulário de Novo chamado.
+**Versão:** 1.2.2 — preparada para publicação estática na Vercel; mantém a correção dos chamados.
 
 > **Estado do projeto:** MVP em desenvolvimento. Ainda exige testes integrados de segurança (RLS), fluxos com múltiplos usuários e sincronização offline antes de uso em produção. Notificações com navegador fechado ainda não foram implementadas.
 
@@ -79,3 +79,7 @@ GOATi-Manager/
 ```
 
 Código e identidade visual do projeto GOATi Manager. A licença de uso público ainda não foi definida.
+
+## Publicação na Vercel
+
+O `vercel.json` gera `dist/` com `npm run build` e configuração pública Supabase via variáveis de ambiente; o arquivo `config.js` local continua ignorado pelo Git. **Veja [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).** Não coloque secret keys no projeto web.

@@ -1,3 +1,10 @@
+## v1.2.2 — Preparação Vercel
+
+- Build estático para Vercel em `dist/`; sem dados ou chaves secretas.
+- Configuração pública Supabase gerada com variáveis de ambiente.
+- Atualização de cache da PWA para manter a configuração atualizada.
+- Guia de implantação, configuração de URLs do Supabase e testes de segurança.
+
 # Changelog GOATi Manager
 
 ## 1.2.1 — Correção do envio de chamados e modal
