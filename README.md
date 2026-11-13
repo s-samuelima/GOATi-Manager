@@ -13,7 +13,7 @@
 - Diário de atividades, avaliações e relatórios PDF.
 - Modo demonstração local, PWA, tema claro/escuro e recursos de uso offline.
 
-**Versão:** 1.2.3 — suporte à criação de conta e recuperação de senha após falha de credenciais no login, preservando o e-mail.
+**Versão:** 1.2.4 — suporte à criação de conta e recuperação de senha após falha de credenciais no login, preservando o e-mail.
 
 > **Estado do projeto:** MVP em desenvolvimento. Ainda exige testes integrados de segurança (RLS), fluxos com múltiplos usuários e sincronização offline antes de uso em produção. Notificações com navegador fechado ainda não foram implementadas.
 
@@ -83,3 +83,7 @@ Código e identidade visual do projeto GOATi Manager. A licença de uso público
 ## Publicação na Vercel
 
 O `vercel.json` gera `dist/` com `npm run build` e configuração pública Supabase via variáveis de ambiente; o arquivo `config.js` local continua ignorado pelo Git. **Veja [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).** Não coloque secret keys no projeto web.
+
+## Excluir chamados de teste
+
+Admin pode selecionar e excluir chamados com confirmação. É necessário aplicar [migração SQL no Supabase](docs/EXCLUIR_CHAMADOS.md) para habilitar a operação.

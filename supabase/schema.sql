@@ -157,7 +157,7 @@ alter table public.ticket_events enable row level security;
 -- Diminui superfície de acesso; RLS e grants atuam em conjunto.
 revoke all on public.profiles,public.assets,public.tickets,public.ticket_messages,public.reviews,public.activities,public.guides,public.ticket_events from anon,authenticated;
 grant select,update on public.profiles to authenticated;
-grant select,insert,update on public.tickets to authenticated;
+grant select,insert,update,delete on public.tickets to authenticated;
 grant select,insert on public.ticket_messages to authenticated;
 grant select,insert on public.reviews to authenticated;
 grant select,insert,update,delete on public.assets,public.activities,public.guides to authenticated;
@@ -175,6 +175,8 @@ create policy tickets_insert on public.tickets for insert to authenticated
  with check(requester_id=(select auth.uid()) and (select private.is_active()) and status='aberto' and urgency in ('baixa','media','alta','critica'));
 create policy tickets_update_admin on public.tickets for update to authenticated
  using((select private.is_admin())) with check((select private.is_admin()));
+create policy tickets_delete_admin on public.tickets for delete to authenticated
+ using((select private.is_admin()));
 
 create policy msg_select on public.ticket_messages for select to authenticated
  using((select private.can_manage_reports()) or (not internal and (select private.is_active()) and exists(select 1 from public.tickets t where t.id=ticket_id and t.requester_id=(select auth.uid()))));
@@ -321,3 +323,17 @@ end;$$;
 revoke execute on function private.audit_asset_change() from public,anon,authenticated;
 drop trigger if exists on_asset_audit on public.assets;
 create trigger on_asset_audit after insert or update on public.assets for each row execute function private.audit_asset_change();
+
+-- Auditoria de exclusão de chamados. O histórico de auditoria não possui FK ao chamado.
+create or replace function private.audit_ticket_delete() returns trigger
+language plpgsql security definer set search_path='' as $$
+begin
+  insert into public.audit_log(actor_id,entity,entity_id,action,details)
+  values((select auth.uid()),'tickets',old.id,'excluido',
+   pg_catalog.jsonb_build_object('numero',old.number,'solicitante',old.requester_id,'status',old.status));
+  return old;
+end;$$;
+revoke execute on function private.audit_ticket_delete() from public,anon,authenticated;
+drop trigger if exists on_ticket_delete_audit on public.tickets;
+create trigger on_ticket_delete_audit before delete on public.tickets
+for each row execute function private.audit_ticket_delete();

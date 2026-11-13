@@ -72,5 +72,10 @@ export const cloud={
  async insert(table,item){const rows=await authorized('/rest/v1/'+table,'POST',item,{prefer:'return=representation'});return rows?.[0]||item;},
  async upsert(table,item){const rows=await authorized('/rest/v1/'+table+'?on_conflict=id','POST',item,{prefer:'resolution=merge-duplicates,return=representation'});return rows?.[0]||item;},
  async update(table,id,changes){const rows=await authorized('/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id),'PATCH',changes,{prefer:'return=representation'});return rows?.[0]||null;},
- async adminSetAccess(id,role,status){return authorized('/rest/v1/rpc/admin_set_access','POST',{target_user:id,new_role:role,new_status:status});}
+ async adminSetAccess(id,role,status){return authorized('/rest/v1/rpc/admin_set_access','POST',{target_user:id,new_role:role,new_status:status});},
+ async deleteTicket(id){
+  const rows=await authorized('/rest/v1/tickets?id=eq.'+encodeURIComponent(id),'DELETE',null,{prefer:'return=representation'});
+  if(!Array.isArray(rows)||rows.length!==1)throw new Error('Chamado não encontrado ou sem permissão para excluir.');
+  return rows[0];
+ }
 };

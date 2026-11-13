@@ -123,3 +123,8 @@
 
 /* Sugestão de cadastro após falha de autenticação, sem enumerar contas */
 .auth-login-help{margin-top:15px;border:1px solid var(--border);border-left:3px solid var(--accent);background:var(--surface);padding:15px;border-radius:12px}.auth-login-help strong{font-size:12px}.auth-login-help p{font-size:12px;color:var(--muted);margin:6px 0 12px}.auth-login-help-actions{display:flex;flex-wrap:wrap;gap:8px}.auth-login-help-actions .btn{flex:1;white-space:normal}.auth-login-help-actions .auth-link{flex-basis:100%;text-align:center}@media(max-width:480px){.auth-login-help-actions{flex-direction:column}.auth-login-help-actions .btn{width:100%}}
+
+/* Exclusão de chamados por administradores: seleção e confirmação explícitas */
+.ticket-delete-preview{max-height:180px;overflow-y:auto;border:1px solid var(--border);padding:10px 12px;border-radius:10px;color:var(--text);font-size:12px}
+.ticket-delete-preview>div+div{margin-top:7px;border-top:1px solid var(--border);padding-top:7px}
+.data-table input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}

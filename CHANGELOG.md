@@ -1,3 +1,9 @@
+## v1.2.4
+
+- Exclusão individual e múltipla de chamados para administradores, com confirmação EXCLUIR.
+- RLS e auditoria da exclusão; cascata de mensagens, eventos e avaliações.
+- Migração SQL separada para banco existente, sem exclusão automática.
+
 ## v1.2.3 — Primeiro acesso simplificado
 
 - Após login rejeitado por credenciais, opções Criar minha conta, Recuperar senha e Tentar novamente.
