@@ -1,3 +1,10 @@
+## v1.3.0 — Controle de tempo e melhorias na navegação
+
+- Cronômetro por atendimento com início, pausa, retomada e finalização, salvo no Supabase.
+- Linha inteira do chamado clicável e acessível por teclado, preservando seleção múltipla.
+- Tempo nas telas e nos relatórios PDF; avaliações visíveis nos detalhes para administradores e Gestão.
+- Migração SQL independente e proteção se o banco ainda não tiver sido atualizado.
+
 ## v1.2.4
 
 - Exclusão individual e múltipla de chamados para administradores, com confirmação EXCLUIR.

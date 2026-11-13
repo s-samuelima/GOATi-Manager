@@ -13,7 +13,7 @@
 - Diário de atividades, avaliações e relatórios PDF.
 - Modo demonstração local, PWA, tema claro/escuro e recursos de uso offline.
 
-**Versão:** 1.2.4 — suporte à criação de conta e recuperação de senha após falha de credenciais no login, preservando o e-mail.
+**Versão:** 1.3.0 — suporte à criação de conta e recuperação de senha após falha de credenciais no login, preservando o e-mail.
 
 > **Estado do projeto:** MVP em desenvolvimento. Ainda exige testes integrados de segurança (RLS), fluxos com múltiplos usuários e sincronização offline antes de uso em produção. Notificações com navegador fechado ainda não foram implementadas.
 
@@ -87,3 +87,7 @@ O `vercel.json` gera `dist/` com `npm run build` e configuração pública Supab
 ## Excluir chamados de teste
 
 Admin pode selecionar e excluir chamados com confirmação. É necessário aplicar [migração SQL no Supabase](docs/EXCLUIR_CHAMADOS.md) para habilitar a operação.
+
+## Controle de tempo por chamado
+
+O administrador pode iniciar, pausar, retomar e finalizar o tempo gasto em cada atendimento, salvo no Supabase. O total aparece nos detalhes, na lista e no relatório PDF. **Execute a migração** `supabase/migrations/20261113_ticket_time_tracking.sql` no banco existente (não reaplique o schema.sql inteiro). Veja `docs/CONTROLE_TEMPO.md`. O funcionário pode avaliar o chamado resolvido na seção Avaliações.

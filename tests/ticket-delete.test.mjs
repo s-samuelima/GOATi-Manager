@@ -10,7 +10,7 @@ const submit=extract('async function handleSubmit(form){',"app.addEventListener(
 const modal=extract('function renderModal(){','function authPage(){');
 const ids=['c79aa0aa-b77e-4e13-98f9-3126ed902fe1','c79aa0aa-b77e-4e13-98f9-3126ed902fe2'];
 function mock({admin=true,online=true,demo=false,confirmation='EXCLUIR'}={}){
- const state={modal:{type:'delete-tickets',ids:[...ids]},selectedTicketIds:new Set(ids),lastNotified:new Set(ids),data:{tickets:ids.map((id,i)=>({id,number:i+1,title:'Teste',status:'aberto'})),messages:ids.map(ticket_id=>({ticket_id})),reviews:ids.map(ticket_id=>({ticket_id}))}};
+ const state={modal:{type:'delete-tickets',ids:[...ids]},selectedTicketIds:new Set(ids),lastNotified:new Set(ids),data:{tickets:ids.map((id,i)=>({id,number:i+1,title:'Teste',status:'aberto'})),messages:ids.map(ticket_id=>({ticket_id})),reviews:ids.map(ticket_id=>({ticket_id})),timeEntries:ids.map(ticket_id=>({ticket_id}))}};
  const deleted=[];let persisted=0;
  const handleSubmit=runInNewContext(submit+'\nhandleSubmit',{state,formData:()=>new Map([['confirmation',confirmation]]),isAdmin:()=>admin,navigator:{onLine:online},demo,cloud:{deleteTicket:async id=>{deleted.push(id);return{id};}},persist:async()=>{persisted++},reload:async()=>{},toast:()=>{}});
  return{state,deleted,persisted:()=>persisted,run:()=>handleSubmit({id:'form-delete-tickets'})};
