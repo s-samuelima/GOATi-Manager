@@ -1,0 +1,81 @@
+# GOATi Manager 🐐
+
+**Help Desk, inventário de TI, Central de Ajuda e relatórios PDF.** Projeto independente de portfólio em JavaScript, com visual grafite/vermelho, PWA e integração opcional com Supabase.
+
+![Identidade visual GOATi](assets/goati-mark.png)
+
+## Recursos
+
+- Abertura, acompanhamento, comentários e gestão de chamados de TI.
+- Perfis de funcionário, administração TI e gestão (quando conectado ao Supabase).
+- Inventário de equipamentos, movimentações, manutenções e importação CSV.
+- Central de Ajuda com pesquisa, categorias e mascote de tutoriais.
+- Diário de atividades, avaliações e relatórios PDF.
+- Modo demonstração local, PWA, tema claro/escuro e recursos de uso offline.
+
+**Versão:** 1.2.1 — correção do erro `e is not defined` no formulário de Novo chamado.
+
+> **Estado do projeto:** MVP em desenvolvimento. Ainda exige testes integrados de segurança (RLS), fluxos com múltiplos usuários e sincronização offline antes de uso em produção. Notificações com navegador fechado ainda não foram implementadas.
+
+## Executar
+
+Requer **Node.js 20 ou superior**.
+
+```powershell
+# Na pasta do projeto:
+Copy-Item config.example.js config.js
+npm test
+npm start
+```
+
+Acesse `http://localhost:4173`. O servidor local está configurado apenas para o próprio computador.
+
+No Windows, você também pode executar `INICIAR_WINDOWS.bat` após criar `config.js`.
+
+Sem configurar Supabase, o aplicativo roda em **modo demonstração local**, com dados fictícios. Também é possível abrir `GOATi_Manager_DEMO.html` diretamente para demonstrar a interface; esse HTML não se conecta ao banco real.
+
+## Supabase
+
+A integração utiliza os arquivos `src/api.js` e `supabase/schema.sql`.
+
+1. Crie um projeto Supabase e aplique o esquema SQL em um **banco de testes vazio**, depois de revisar o script.
+2. Configure `Authentication > URL Configuration` com a URL local e, futuramente, o domínio HTTPS da aplicação.
+3. Abra `config.js` e preencha `SUPABASE_URL` e `SUPABASE_ANON_KEY` usando a **publishable key**.
+4. Crie um usuário, confirme o e-mail e configure a autorização de administrador no seu ambiente de testes.
+5. Verifique as políticas de segurança, as permissões por perfil e a gravação dos chamados no banco.
+
+Detalhes: [Configurar Supabase](CONFIGURAR_SUPABASE.md) e [Validação antes da produção](docs/VALIDACAO_ANTES_DA_PRODUCAO.md).
+
+**Não publique** `config.js` com dados pessoais do seu ambiente, segredos, banco exportado nem arquivos de usuários. Ele é ignorado por `.gitignore`. Mesmo uma chave publishable exige RLS corretamente configurada.
+
+## Testes
+
+```powershell
+npm test
+npm run build:demo
+```
+
+O script `build:demo` regenera a demonstração autônoma sem embutir credenciais Supabase.
+
+## Publicação no GitHub
+
+Veja [docs/PUBLICAR_NO_GITHUB.md](docs/PUBLICAR_NO_GITHUB.md) para o passo a passo. Publicar o **repositório de código** é diferente de **hospedar a aplicação**.
+
+## Estrutura
+
+```text
+GOATi-Manager/
+├── assets/            # Logo e mascote
+├── src/               # Interface, API, dados, relatórios e estilos
+├── supabase/          # Estrutura do banco e políticas
+├── tests/             # Testes automatizados
+├── docs/              # Tutoriais, importação e validação
+├── scripts/           # Gerador da demonstração
+├── config.example.js  # Modelo público de configuração
+├── index.html
+├── sw.js
+├── server.mjs
+└── package.json
+```
+
+Código e identidade visual do projeto GOATi Manager. A licença de uso público ainda não foi definida.

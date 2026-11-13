@@ -1,0 +1,28 @@
+# Pacotes e cache
+node_modules/
+*.log
+dist/
+coverage/
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Configurações locais e segredos
+/config.js
+.env
+.env.*
+!.env.example
+*.secret
+*.key
+*.pem
+
+# Dados locais e backups (não publicar dados de usuários)
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+dados_reais/
+backup/
+backups/
