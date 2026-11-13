@@ -13,7 +13,7 @@
 - Diário de atividades, avaliações e relatórios PDF.
 - Modo demonstração local, PWA, tema claro/escuro e recursos de uso offline.
 
-**Versão:** 1.2.2 — preparada para publicação estática na Vercel; mantém a correção dos chamados.
+**Versão:** 1.2.3 — suporte à criação de conta e recuperação de senha após falha de credenciais no login, preservando o e-mail.
 
 > **Estado do projeto:** MVP em desenvolvimento. Ainda exige testes integrados de segurança (RLS), fluxos com múltiplos usuários e sincronização offline antes de uso em produção. Notificações com navegador fechado ainda não foram implementadas.
 

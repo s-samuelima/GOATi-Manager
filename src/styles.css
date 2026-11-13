@@ -120,3 +120,6 @@
 
 .help-guide-intro{background:radial-gradient(circle at 85% 25%,#622037 0,#29151f 45%,#171920);border:1px solid #6e2639;display:flex;position:relative;overflow:hidden;color:#fff;border-radius:13px;padding:20px 23px;min-height:126px;margin-bottom:14px}
 .help-guide-intro>div{position:relative;z-index:1;max-width:72%}.help-guide-intro h3{font-size:17px;margin:3px 0 8px}.help-guide-intro p{font-size:11px;line-height:1.55;color:#d2c6cc}.help-guide-intro img{position:absolute;right:-3px;bottom:-40px;width:135px;height:180px;object-fit:cover;object-position:50% 28%;mask-image:linear-gradient(to right,transparent,black 20%)}
+
+/* Sugestão de cadastro após falha de autenticação, sem enumerar contas */
+.auth-login-help{margin-top:15px;border:1px solid var(--border);border-left:3px solid var(--accent);background:var(--surface);padding:15px;border-radius:12px}.auth-login-help strong{font-size:12px}.auth-login-help p{font-size:12px;color:var(--muted);margin:6px 0 12px}.auth-login-help-actions{display:flex;flex-wrap:wrap;gap:8px}.auth-login-help-actions .btn{flex:1;white-space:normal}.auth-login-help-actions .auth-link{flex-basis:100%;text-align:center}@media(max-width:480px){.auth-login-help-actions{flex-direction:column}.auth-login-help-actions .btn{width:100%}}

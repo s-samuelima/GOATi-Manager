@@ -1,3 +1,12 @@
+## v1.2.3 — Primeiro acesso simplificado
+
+- Após login rejeitado por credenciais, opções Criar minha conta, Recuperar senha e Tentar novamente.
+- E-mail preenchido previamente no cadastro e na recuperação; senhas nunca são reaproveitadas.
+- Falhas de rede mantêm tratamento próprio, sem sugerir que a conta não existe.
+- Mensagens de autenticação não revelam se um e-mail está cadastrado.
+- Aprovação do administrador preservada; confirmação de e-mail segue a configuração do Supabase.
+- Testes do novo fluxo e atualização do cache PWA.
+
 ## v1.2.2 — Preparação Vercel
 
 - Build estático para Vercel em `dist/`; sem dados ou chaves secretas.
