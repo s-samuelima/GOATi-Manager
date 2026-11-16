@@ -10,7 +10,7 @@ export const LABEL_SIZES=[
  {key:'60x30',name:'60 × 30 mm (padrão)',width:60,height:30},
  {key:'70x40',name:'70 × 40 mm',width:70,height:40}
 ];
-export function qrTarget(tag,origin=location.origin){
+export function qrTarget(tag,origin=(typeof location!=='undefined'?location.origin:'http://localhost')){
  const url=new URL('/',origin);
  url.searchParams.set('patrimonio',String(tag));
  return url.toString();
