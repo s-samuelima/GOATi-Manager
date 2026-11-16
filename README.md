@@ -99,3 +99,9 @@ Se um usuário funcionário entrar e tiver chamado resolvido ainda sem avaliaç�
 ### Alertas de cadastros pendentes (v1.3.2)
 
 O administrador vê o contador de pendências em **Usuários**, no topo do aplicativo e em um aviso com acesso direto. O sistema consulta novos cadastros a cada ~23 segundos **somente enquanto o GOATi Manager estiver aberto e online**. A mensagem interna oferece **Analisar cadastro** e a notificação do sistema operacional (caso habilitada no navegador) também leva ao painel de aprovação. A simples criação da conta não aprova o usuário. Não é preciso SQL adicional para este recurso.
+
+### Cadastro automático e avaliação em tempo quase real (v1.3.3)
+
+A primeira visita abre **Criar conta**; quem já tem cadastro usa **Fazer login**. A migração SQL habilita novos perfis como **funcionario/ativo** sem aprovação. Administradores continuam podendo bloquear e reativar. Se o Supabase exigir confirmação de e-mail, o funcionário precisará confirmá-lo antes de entrar. Veja [o guia de atualização](docs/CADASTRO_AUTOMATICO_E_AVALIACAO.md).
+
+O administrador pode excluir permanentemente contas **sem histórico** com confirmação EXCLUIR; contas com chamados, mensagens, avaliações ou tempo de atendimento associados devem ser bloqueadas, preservando histórico. Com o app aberto, a avaliação aparece automaticamente após resolução em verificações a cada ~6 segundos; não exige reabrir o chamado.

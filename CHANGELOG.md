@@ -1,3 +1,11 @@
+## v1.3.3 — Cadastro direto, exclusão segura e avaliação após resolução
+
+- Tela de cadastro como entrada padrão, com link de login para contas existentes.
+- Nova migração de perfil ativo no primeiro cadastro, sem aprovação administrativa; não altera contas existentes.
+- Exclusão de usuários via RPC de administrador com confirmação e proteção contra perda de histórico.
+- Avaliação automática para funcionário conectado ao resolver chamado, sem reabrir detalhes; verificação em ~6 segundos.
+- Verificação de conta bloqueada durante a sessão e testes atualizados.
+
 ## v1.3.2 — Avisos de novos cadastros pendentes
 
 - Administradores veem a quantidade de contas pendentes no menu Usuários, no topo e em uma faixa de aviso persistente.

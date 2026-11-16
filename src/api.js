@@ -42,7 +42,10 @@ const query=(filters={})=>Object.entries(filters).map(([k,v])=>`${encodeURICompo
 export const cloud={
  get userId(){return session?.user?.id||null;},get session(){return session;},
  async signup({name,email,password,sector}){
-  return raw('/auth/v1/signup?redirect_to='+encodeURIComponent(location.origin+'/'),'POST',{email,password,data:{full_name:name,sector}});
+  const response=await raw('/auth/v1/signup?redirect_to='+encodeURIComponent(location.origin+'/'),'POST',{email,password,data:{full_name:name,sector}});
+  const s=response?.session?.access_token?response.session:response?.access_token?response:null;
+  if(s){session={...s,expires_at:Date.now()+Number(s.expires_in||3600)*1000};remember();}
+  return response;
  },
  async login(email,password){
   const s=await raw('/auth/v1/token?grant_type=password','POST',{email,password});
@@ -74,6 +77,16 @@ export const cloud={
  async update(table,id,changes){const rows=await authorized('/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id),'PATCH',changes,{prefer:'return=representation'});return rows?.[0]||null;},
  async timerAction(ticketId,operation){return authorized('/rest/v1/rpc/ticket_timer_action','POST',{target_ticket:ticketId,operation});},
  async adminSetAccess(id,role,status){return authorized('/rest/v1/rpc/admin_set_access','POST',{target_user:id,new_role:role,new_status:status});},
+ async deleteUser(id){
+  try{
+   const response=await authorized('/rest/v1/rpc/admin_delete_user','POST',{target_user:id});
+   if(!response?.ok)throw new Error('O servidor não confirmou a exclusão do usuário.');
+   return response;
+  }catch(error){
+   if(/PGRST202|could not find the function|schema cache/i.test(error.message))throw new Error('Execute a migração SQL de gerenciamento de usuários no Supabase para ativar esta opção.');
+   throw error;
+  }
+ },
  async deleteTicket(id){
   const rows=await authorized('/rest/v1/tickets?id=eq.'+encodeURIComponent(id),'DELETE',null,{prefer:'return=representation'});
   if(!Array.isArray(rows)||rows.length!==1)throw new Error('Chamado não encontrado ou sem permissão para excluir.');

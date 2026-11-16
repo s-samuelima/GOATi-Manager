@@ -13,7 +13,7 @@ test('Clique dentro do modal não gera erro nem fecha janela',async()=>{
   const state={modal:{type:'new-ticket'}};
   let renders=0;
   const handleAction=runInNewContext(handler+';handleAction',{
-    state,renderShell:()=>{renders++;}
+    state,renderShell:()=>{renders++;},showReviewPromptIfNeeded:()=>false
   });
   const backdrop={dataset:{action:'close-backdrop'}};
   const input={};
@@ -26,7 +26,7 @@ test('Clique no fundo do modal fecha janela normalmente',async()=>{
   const state={modal:{type:'new-ticket'}};
   let renders=0;
   const handleAction=runInNewContext(handler+';handleAction',{
-    state,renderShell:()=>{renders++;}
+    state,renderShell:()=>{renders++;},showReviewPromptIfNeeded:()=>false
   });
   const backdrop={dataset:{action:'close-backdrop'}};
   await handleAction(backdrop,{target:backdrop});

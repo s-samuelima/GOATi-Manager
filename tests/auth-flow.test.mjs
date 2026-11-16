@@ -36,10 +36,10 @@ test('Login inválido apresenta criar conta e recuperação sem enumerar usuári
  assert.match(html,/value="novo@exemplo.com"/);
  assert.doesNotMatch(html,/E-mail não cadastrado|Usuário não encontrado/);
 });
-test('Cadastro conserva e-mail predefinido e pede aprovação',()=>{
+test('Cadastro conserva e-mail e informa liberação automática',()=>{
  const html=renderAuth({authView:'signup',authEmail:'novo@exemplo.com'});
  assert.match(html,/form-signup/);assert.match(html,/value="novo@exemplo.com"/);
- assert.match(html,/aprovação administrativa/);
+ assert.match(html,/liberadas automaticamente/);
 });
 test('Falha de credenciais exibe ajuda sem criar usuário automaticamente',async()=>{
  const state={authEmail:'',authLoginFailed:false,authView:'login'};
