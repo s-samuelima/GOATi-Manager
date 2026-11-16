@@ -33,6 +33,7 @@ export const seed={
   {id:'demo-cel',tag:'GOAT-TI-CEL-001',category:'Celular',brand:'Samsung',model:'Galaxy A',serial:'EXEMPLO-003',imei:'',line:'',sector:'Administrativo',owner:'Estoque',location:'Armário TI',status:'Disponível',condition:'Bom',quantity:1}
  ],
  timeEntries:[],
+ assetEvents:[],
  activities:[
   {id:'demo-act1',date:new Date().toISOString().slice(0,10),title:'Verificação de conectividade',category:'Redes',sector:'Comercial',minutes:40,description:'Diagnóstico de pontos de rede.',status:'Concluída'},
   {id:'demo-act2',date:new Date().toISOString().slice(0,10),title:'Conferência patrimonial',category:'Inventário',sector:'TI',minutes:70,description:'Inspeção de estações e periféricos.',status:'Em andamento'}

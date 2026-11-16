@@ -448,3 +448,22 @@ begin
 end;$$;
 revoke all on function public.admin_delete_user(uuid) from public,anon,authenticated;
 grant execute on function public.admin_delete_user(uuid) to authenticated;
+
+-- Auditoria adicional do inventario GL
+
+-- Audita explicitamente concessoes e revogacoes de permissao TI.
+create or replace function private.audit_profile_access() returns trigger
+language plpgsql security definer set search_path='' as $$
+begin
+ if old.role is distinct from new.role or old.status is distinct from new.status
+    or old.can_manage_inventory is distinct from new.can_manage_inventory then
+  insert into public.audit_log(actor_id,entity,entity_id,action,details)
+  values((select auth.uid()),'profiles',new.id,'alteracao_de_acesso',
+   pg_catalog.jsonb_build_object('anterior_role',old.role,'nova_role',new.role,
+      'anterior_status',old.status,'novo_status',new.status,
+      'anterior_inventario',old.can_manage_inventory,'novo_inventario',new.can_manage_inventory));
+ end if;
+ return new;
+end;$$;
+revoke execute on function private.audit_profile_access() from public,anon,authenticated;
+

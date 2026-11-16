@@ -1,6 +1,7 @@
 import {storage} from './storage.js';
 import {cloud,configured} from './api.js';
 import {downloadPDF,downloadCSV,parseCSV} from './reports.js';
+import {LABEL_SIZES,qrTarget,qrSvg,downloadAssetLabels,getNextDemoAssetTag,prepareAssetImport} from './inventory.js';
 import {seed,normalizeData,resolveHelpArticles,guides,cats,sectors,assetCats,statusNames,urgencyNames} from './seed.js';
 
 const app=document.getElementById('app');
@@ -18,13 +19,17 @@ const textarea=(name,label,value='',min=0)=>`<div class="field"><label for="f-${
 const chip=(v)=>`<span class="chip ${esc(v)}">${esc(statusNames[v]||urgencyNames[v]||v||'—')}</span>`;
 const cIcon={grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',ticket:'<path d="M4 7a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-3a2 2 0 0 0 0-4V7Z"/><path d="M12 6v2m0 3v2m0 3v2"/>',package:'<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="M3 8v9l9 5 9-5V8M12 13v9"/>',activity:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/>',book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14ZM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',star:'<path d="m12 3 2.7 5.8 6.3.9-4.5 4.5 1.1 6.3L12 17.5l-5.6 3 1.1-6.3L3 9.7l6.3-.9L12 3Z"/>',users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',settings:'<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.75l.06.06-2.04 2.04-.06-.06a1.6 1.6 0 0 0-1.75-.32l-.09.04a1.6 1.6 0 0 0-.99 1.46V21H9.15v-.08a1.6 1.6 0 0 0-1-1.46l-.08-.04a1.6 1.6 0 0 0-1.75.32l-.06.06-2.04-2.04.06-.06A1.6 1.6 0 0 0 4.6 15l-.04-.09a1.6 1.6 0 0 0-1.46-.99H3V10.1h.1a1.6 1.6 0 0 0 1.46-.99L4.6 9a1.6 1.6 0 0 0-.32-1.75l-.06-.06 2.04-2.04.06.06a1.6 1.6 0 0 0 1.75.32l.09-.04a1.6 1.6 0 0 0 .99-1.46V4h5.7v.08a1.6 1.6 0 0 0 .99 1.46l.09.04a1.6 1.6 0 0 0 1.75-.32l.06-.06 2.04 2.04-.06.06A1.6 1.6 0 0 0 19.4 9l.04.09a1.6 1.6 0 0 0 1.46.99h.1v3.82h-.1a1.6 1.6 0 0 0-1.46.99L19.4 15Z"/>',bell:'<path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/>',moon:'<path d="M20 16.7A9 9 0 0 1 7.3 4 9 9 0 1 0 20 16.7Z"/>',plus:'<path d="M12 5v14M5 12h14"/>',search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',arrow:'<path d="M5 12h14m-6-6 6 6-6 6"/>',check:'<path d="m4 12 5 5L20 6"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',monitor:'<rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',wifi:'<path d="M2 8a15 15 0 0 1 20 0M5 12a11 11 0 0 1 14 0m-10 4a6 6 0 0 1 6 0M12 20h.01"/>',headphones:'<path d="M3 14v-3a9 9 0 0 1 18 0v3M5 13H3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3v-7H5Zm14 0h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3v-7h1Z"/>',printer:'<path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',gauge:'<path d="M5 18a9 9 0 1 1 14 0M12 13l4-4"/><path d="M4 20h16"/>',lock:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',close:'<path d="M18 6 6 18M6 6l12 12"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',download:'<path d="M12 3v13m-5-5 5 5 5-5M5 20h14"/>',upload:'<path d="M12 21V8m-5 5 5-5 5 5M5 4h14"/>',menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',refresh:'<path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"/>',cloud:'<path d="M20 16a4 4 0 0 0-4-4h-1a6 6 0 0 0-11 2 4 4 0 0 0 0 8h16a3 3 0 0 0 0-6Z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-9h.01"/>',shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',chevron:'<path d="m9 18 6-6-6-6"/>',mouse:'<rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 2v8"/>','mouse-pointer':'<path d="m4 3 7 18 2.5-7.5L21 11 4 3Z"/>','cloud-off':'<path d="M8 8a6 6 0 0 1 10 4 4 4 0 0 1 2 7H7a4 4 0 0 1-2-7M3 3l18 18"/>','lock-keyhole':'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2"/>'};
 const icon=(name,size=18)=>`<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${cIcon[name]||cIcon.info}</svg>`;
-const state={view:'dashboard',search:'',filter:'all',period:'mensal',rangeFrom:'',rangeTo:'',inventoryTab:'assets',modal:null,guideId:null,tab:'todos',mobile:false,
+const state={view:'dashboard',search:'',filter:'all',period:'mensal',rangeFrom:'',rangeTo:'',inventoryTab:'assets',assetFilters:{category:'all',sector:'all',owner:'all',status:'all'},selectedAssetIds:new Set(),assetDeepLink:new URLSearchParams(location.search).get('patrimonio')||'',importPreview:null,inventoryMigrationMissing:false,modal:null,guideId:null,tab:'todos',mobile:false,
  authView:'signup',authEmail:'',authLoginFailed:false,selectedTicketIds:new Set(),reviewPromptShown:new Set(),timerMigrationMissing:false,recovery:false,theme:localStorage.getItem('goat-ti-theme')||'dark',role:null,user:null,profile:null,
- data:{timeEntries:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]},queue:[],noticePermission:typeof Notification!=='undefined'?Notification.permission:'indisponível',lastNotified:new Set(),seenPendingUsers:new Set(),pendingUsersInitialized:false,installPrompt:null,loading:false};
+ data:{timeEntries:[],assetEvents:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]},queue:[],noticePermission:typeof Notification!=='undefined'?Notification.permission:'indisponível',lastNotified:new Set(),seenPendingUsers:new Set(),pendingUsersInitialized:false,installPrompt:null,loading:false};
 const demo=!configured;
 function isAdmin(){return state.role==='admin';}
 function isManager(){return state.role==='gestao';}
 function canManage(){return isAdmin()||isManager();}
+function canViewInventory(){return isActive()&&(!configured||navigator.onLine)&&(isAdmin()||isManager()||(state.role==='funcionario'&&state.profile?.can_manage_inventory===true));}
+function canEditInventory(){return canViewInventory()&&(isAdmin()||(state.role==='funcionario'&&state.profile?.can_manage_inventory===true));}
+function requireInventoryReady(){if(state.inventoryMigrationMissing&&!demo)throw new Error('Execute primeiro a migração SQL do inventário GL no Supabase.');}
+function openDeepLinkedAsset(){if(!state.assetDeepLink||!state.user)return false;const tag=state.assetDeepLink;state.assetDeepLink='';if(!canViewInventory()){toast('Seu perfil não tem acesso ao inventário patrimonial.','error');return false;}const asset=state.data.assets.find(a=>a.tag===tag);if(!asset){toast('Patrimônio '+tag+' não encontrado.','error');return false;}state.view='inventario';state.modal={type:'asset-detail',id:asset.id};renderShell();return true;}
 function isActive(){return state.profile?.status==='ativo';}
 function userId(){return state.user?.id||null;}
 function ownTickets(){return canManage()?state.data.tickets:state.data.tickets.filter(t=>t.requester_id===userId());}
@@ -32,9 +37,9 @@ function getTicket(id){return ownTickets().find(t=>String(t.id)===String(id))||s
 function toast(message,type='',action=null){const el=document.createElement('div');el.className='toast '+type;const label=document.createElement('span');label.textContent=message;el.appendChild(label);if(action&&typeof action.onClick==='function'){const btn=document.createElement('button');btn.type='button';btn.className='toast-action';btn.textContent=action.label||'Ver detalhes';btn.addEventListener('click',()=>{action.onClick();el.remove();});el.appendChild(btn);}document.getElementById('toast-region').appendChild(el);setTimeout(()=>el.remove(),action?11000:4300);}
 const badgeMode=()=>demo?'<div class="demo-banner">'+icon('info',17)+'<span><b>Modo demonstração local.</b> Os dados são exemplos salvos apenas neste navegador. Para uso compartilhado na empresa, conecte o Supabase conforme o README.</span></div>':'';
 const offlineWarn=()=>!navigator.onLine?'<div class="offline-notice">'+icon('cloud-off',17)+' <strong>Sem internet:</strong> novos chamados ficam neste computador até a sincronização. O TI ainda não os recebeu.</div>':'';
-const navs=[{key:'dashboard',name:'Visão geral',icon:'grid'},{key:'chamados',name:'Chamados',icon:'ticket'},{key:'ajuda',name:'Central de ajuda',icon:'book'},{key:'tutorial',name:'Como usar',icon:'info'},{key:'avaliacoes',name:'Avaliações',icon:'star'},{key:'inventario',name:'Inventário',icon:'package',manager:true},{key:'atividades',name:'Diário de TI',icon:'activity',manager:true},{key:'relatorios',name:'Relatórios PDF',icon:'file',manager:true},{key:'usuarios',name:'Usuários',icon:'users',admin:true},{key:'config',name:'Configurações',icon:'settings'}];
+const navs=[{key:'dashboard',name:'Visão geral',icon:'grid'},{key:'chamados',name:'Chamados',icon:'ticket'},{key:'ajuda',name:'Central de ajuda',icon:'book'},{key:'tutorial',name:'Como usar',icon:'info'},{key:'avaliacoes',name:'Avaliações',icon:'star'},{key:'inventario',name:'Inventário',icon:'package',inventory:true},{key:'atividades',name:'Diário de TI',icon:'activity',manager:true},{key:'relatorios',name:'Relatórios PDF',icon:'file',manager:true},{key:'usuarios',name:'Usuários',icon:'users',admin:true},{key:'config',name:'Configurações',icon:'settings'}];
 function pendingProfiles(){return isAdmin()?state.data.profiles.filter(p=>p.status==='pendente'):[];}
-function navItem(n){if(n.admin&&!isAdmin()||n.manager&&!canManage())return '';const count=n.key==='usuarios'?pendingProfiles().length:0;return `<button data-action="go" data-view="${n.key}" class="${state.view===n.key?'active':''}" aria-current="${state.view===n.key?'page':'false'}">${icon(n.icon,17)}<span>${n.name}</span>${count?`<span class="nav-pending-count" aria-label="${count} cadastro(s) aguardando aprovação">${count}</span>`:''}</button>`;}
+function navItem(n){if(n.admin&&!isAdmin()||n.manager&&!canManage()||n.inventory&&!canViewInventory())return '';const count=n.key==='usuarios'?pendingProfiles().length:0;return `<button data-action="go" data-view="${n.key}" class="${state.view===n.key?'active':''}" aria-current="${state.view===n.key?'page':'false'}">${icon(n.icon,17)}<span>${n.name}</span>${count?`<span class="nav-pending-count" aria-label="${count} cadastro(s) aguardando aprovação">${count}</span>`:''}</button>`;}
 function openPendingApproval(id=null){if(!isAdmin())return;const pending=pendingProfiles();const target=id?pending.find(p=>p.id===id):pending[0];state.view='usuarios';state.search='';state.filter='all';state.mobile=false;state.modal=target?{type:'user',id:target.id}:null;renderShell();}
 function notifyPendingUser(profile){if(!isAdmin()||profile.status!=='pendente')return;const name=profile.full_name||'Novo colaborador';toast('Novo cadastro aguardando aprovação: '+name,'success',{label:'Analisar cadastro',onClick:()=>openPendingApproval(profile.id)});if(typeof Notification!=='undefined'&&Notification.permission==='granted'){try{const alert=new Notification('GOATi Manager · Cadastro pendente',{body:name+' solicitou acesso à plataforma.',icon:'/assets/goati-192.png',tag:'goati-cadastro-'+profile.id});alert.onclick=()=>{window.focus();openPendingApproval(profile.id);alert.close();};}catch(error){console.warn('Notificação do navegador indisponível:',error);}}}
 function rememberPendingProfiles(profiles){if(!isAdmin())return;const pending=profiles.filter(p=>p.status==='pendente');if(!state.pendingUsersInitialized){pending.forEach(p=>state.seenPendingUsers.add(p.id));state.pendingUsersInitialized=true;return;}const newcomers=pending.filter(p=>!state.seenPendingUsers.has(p.id));pending.forEach(p=>state.seenPendingUsers.add(p.id));newcomers.forEach(notifyPendingUser);}
@@ -48,12 +53,12 @@ function renderShell(){
  app.innerHTML=`${state.mobile?'<div class="mobile-scrim" data-action="close-mobile"></div>':''}<div class="app-shell">
  <aside class="sidebar ${state.mobile?'mobile-open':''}" aria-label="Menu principal"><div class="brand"><div class="brand-icon"><img src="/assets/goati-mark.png" alt="" /></div><div class="brand-copy"><b class="brand-wordmark">GOAT<span class="brand-i">i</span></b><span class="brand-manager">MANAGER</span></div></div>
  <div class="nav-label">Área de trabalho</div><nav class="nav">${navs.slice(0,5).map(navItem).join('')}</nav>
- ${canManage()?`<div class="nav-label" style="margin-top:14px">Administração</div><nav class="nav">${navs.slice(5,9).map(navItem).join('')}</nav>`:''}
+ ${canManage()||canViewInventory()?`<div class="nav-label" style="margin-top:14px">Administração</div><nav class="nav">${navs.slice(5,9).map(navItem).join('')}</nav>`:''}
  <div class="sb-bottom"><button data-action="go" data-view="config">${icon('settings',17)} Preferências</button><div class="sb-profile"><div class="avatar">${esc(initials(state.profile?.full_name))}</div><div><b>${esc(state.profile?.full_name||'Usuário')}</b><small>${isAdmin()?'Administrador de TI':isManager()?'Gestão':'Colaborador'}</small></div></div><button data-action="logout">${icon('logout',17)} Sair da conta</button></div></aside>
  <div class="main-wrap"><header class="topbar"><div style="display:flex;align-items:center;gap:10px"><button class="icon-btn mobile-toggle" data-action="mobile" aria-label="Abrir menu">${icon('menu')}</button><div class="crumb">Workspace <span>/</span> <strong>${esc(label)}</strong></div></div><div class="top-actions"><span class="connection" title="A disponibilidade real é verificada ao sincronizar"> <span class="status-dot ${navigator.onLine?'':'offline'}"></span>${navigator.onLine?'Online':'Offline'}${pending?' · '+pending+' pendente(s)':''}</span><button class="icon-btn" data-action="theme" title="Alternar tema" aria-label="Alternar tema">${icon(state.theme==='dark'?'sun':'moon')}</button><button class="icon-btn" data-action="notifications" title="Permitir notificações" aria-label="Permitir notificações">${icon('bell')}</button>${isAdmin()&&approvals?`<button class="pending-top-button" data-action="review-pending" title="${approvals} cadastro(s) aguardando aprovação">${icon('users',16)}<span>${approvals}</span></button>`:''}</div></header>
- <main class="content" id="main-content">${badgeMode()}${offlineWarn()}${isAdmin()&&approvals?`<div class="pending-users-banner" role="status">${icon('users',21)}<div><strong>${approvals} ${approvals===1?'cadastro aguardando':'cadastros aguardando'} aprovação</strong><p>Analise os novos colaboradores antes de liberar o acesso.</p></div><button class="btn primary small" data-action="review-pending">Analisar cadastro${approvals===1?'':'s'}</button></div>`:''}${renderPage()}<div class="footer-note">GOATi MANAGER · Help Desk e Inventário · v1.3.3 • ${demo?'Demonstração local':'Ambiente conectado'}</div></main></div></div>${state.modal?renderModal():''}`;
+ <main class="content" id="main-content">${badgeMode()}${offlineWarn()}${isAdmin()&&approvals?`<div class="pending-users-banner" role="status">${icon('users',21)}<div><strong>${approvals} ${approvals===1?'cadastro aguardando':'cadastros aguardando'} aprovação</strong><p>Analise os novos colaboradores antes de liberar o acesso.</p></div><button class="btn primary small" data-action="review-pending">Analisar cadastro${approvals===1?'':'s'}</button></div>`:''}${renderPage()}<div class="footer-note">GOATi MANAGER · Help Desk e Inventário · v1.4.0 • ${demo?'Demonstração local':'Ambiente conectado'}</div></main></div></div>${state.modal?renderModal():''}`;
 }
-function renderPage(){switch(state.view){case 'dashboard':return dashboard();case 'chamados':return ticketsPage();case 'inventario':return canManage()?inventoryPage():unauthorized();case 'atividades':return canManage()?activitiesPage():unauthorized();case 'relatorios':return canManage()?reportsPage():unauthorized();case 'ajuda':return helpPage();case 'tutorial':return tutorialPage();case 'avaliacoes':return reviewsPage();case 'usuarios':return isAdmin()?usersPage():unauthorized();case 'config':return settingsPage();default:return dashboard();}}
+function renderPage(){switch(state.view){case 'dashboard':return dashboard();case 'chamados':return ticketsPage();case 'inventario':return canViewInventory()?inventoryPage():unauthorized();case 'atividades':return canManage()?activitiesPage():unauthorized();case 'relatorios':return canManage()?reportsPage():unauthorized();case 'ajuda':return helpPage();case 'tutorial':return tutorialPage();case 'avaliacoes':return reviewsPage();case 'usuarios':return isAdmin()?usersPage():unauthorized();case 'config':return settingsPage();default:return dashboard();}}
 const unauthorized=()=>'<div class="panel panel-pad"><h2>Você não tem permissão para acessar esta área.</h2></div>';
 function metric(label,value,ico,footer){return `<div class="metric"><div class="metric-head"><span>${label}</span><span class="metric-icon">${icon(ico,19)}</span></div><strong>${esc(value)}</strong><div class="metric-foot">${footer}</div></div>`;}
 function statusBars(tickets){return Object.entries(statusNames).map(([code,label])=>{const count=tickets.filter(t=>t.status===code).length;return `<div class="mini-bar"><label>${label}</label><div class="mini-bar-track"><span style="width:${tickets.length?count/tickets.length*100:0}%"></span></div><strong>${count}</strong></div>`;}).join('');}
@@ -85,16 +90,46 @@ function ticketsPage(){const queues=state.queue.filter(q=>q.owner===userId()).ma
  <div class="toolbar">${searchbar('Buscar por chamado, setor ou solicitante...')}<select class="select" id="filter-status" aria-label="Filtrar por status"><option value="all">Todos os status</option>${Object.entries({...statusNames,pendente:'Pendente de envio'}).map(([v,n])=>`<option value="${v}" ${state.filter===v?'selected':''}>${n}</option>`).join('')}</select><button class="btn outline" data-action="refresh">${icon('refresh',16)} Atualizar</button>${isAdmin()?`<button class="btn outline" data-action="select-visible-tickets" ${filtered.every(x=>state.selectedTicketIds.has(x.id))||!filtered.length?'disabled':''}>Marcar exibidos</button><button class="btn danger" data-action="delete-selected-tickets" ${!state.selectedTicketIds.size?'disabled':''}>Excluir selecionados (${state.selectedTicketIds.size})</button>`:''}</div>
  <div class="panel table-wrap"><table class="data-table"><thead><tr>${isAdmin()?'<th><span class="sr-only">Selecionar</span></th>':''}<th>Chamado</th>${canManage()?'<th>Solicitante</th>':''}<th>Categoria</th><th>Prioridade</th><th>Status</th>${canManage()?'<th>Tempo TI</th>':''}<th>Data</th></tr></thead><tbody>${filtered.map(t=>`<tr class="ticket-clickable" tabindex="0" data-action="ticket" data-id="${esc(t.id)}" aria-label="Abrir chamado ${esc(t.number||t.id)}: ${esc(t.title)}">${isAdmin()?`<td>${t.status!=='pendente'?`<input type="checkbox" aria-label="Selecionar chamado ${esc(t.number||t.id)}" data-action="select-ticket" data-id="${esc(t.id)}" ${state.selectedTicketIds.has(t.id)?'checked':''}>`:''}</td>`:''}<td><button class="linkrow" data-action="ticket" data-id="${esc(t.id)}" style="background:none;border:none;color:var(--text);text-align:left;cursor:pointer"><strong>#${esc(t.number||'...')} · ${esc(t.title)}</strong><div class="cell-secondary">${esc(t.description).slice(0,65)}${t.description?.length>65?'…':''}</div></button></td>${canManage()?`<td>${esc(t.requester_name)}</td>`:''}<td>${esc(t.category)}</td><td>${chip(t.urgency)}</td><td>${chip(t.status)}</td>${canManage()?`<td class="cell-secondary" data-live-ticket-time="${esc(t.id)}">${formatDuration(ticketTotalSeconds(t.id))}</td>`:''}<td class="cell-secondary">${dateShort(t.created_at)}</td></tr>`).join('')}</tbody></table>${filtered.length?'':empty('Nada encontrado.','Tente outro filtro ou abra um chamado.')}</div>`;}
 function inventoryPage(){
- const filtered=state.data.assets.filter(a=>([a.tag,a.category,a.brand,a.model,a.serial,a.owner,a.location].join(' ').toLowerCase().includes(state.search.toLowerCase()))&&(state.filter==='all'||a.category===state.filter));
+ const filters=state.assetFilters;
+ const cats=[...new Set(state.data.assets.map(a=>a.category).filter(Boolean))].sort();
+ const sectors=[...new Set(state.data.assets.map(a=>a.sector).filter(Boolean))].sort();
+ const owners=[...new Set(state.data.assets.map(a=>a.owner).filter(Boolean))].sort();
+ const statuses=[...new Set(state.data.assets.map(a=>a.status).filter(Boolean))].sort();
+ const match=(value,selected)=>selected==='all'||value===selected;
+ const found=state.data.assets.filter(a=>[
+  a.tag,a.legacy_tag,a.category,a.brand,a.model,a.serial,a.owner,a.sector,a.location
+ ].join(' ').toLowerCase().includes(state.search.toLowerCase())
+ &&match(a.category,filters.category)&&match(a.sector,filters.sector)
+ &&match(a.owner,filters.owner)&&match(a.status,filters.status));
+ const options=(values,current)=>'<option value="all">Todos</option>'+values.map(x=>'<option value="'+esc(x)+'" '+(current===x?'selected':'')+'>'+esc(x)+'</option>').join('');
  const total=state.data.assets.reduce((sum,a)=>sum+Number(a.quantity||1),0);
  const tabs=`<div class="navtabs mb-3"><button class="tab ${state.inventoryTab==='assets'?'active':''}" data-action="inventory-tab" data-tab="assets">${icon('package',15)} Equipamentos</button><button class="tab ${state.inventoryTab==='movements'?'active':''}" data-action="inventory-tab" data-tab="movements">${icon('refresh',15)} Movimentações</button><button class="tab ${state.inventoryTab==='maintenance'?'active':''}" data-action="inventory-tab" data-tab="maintenance">${icon('settings',15)} Manutenções</button></div>`;
+ const actions=canEditInventory()?`<button class="btn outline" data-action="import">${icon('upload',16)} Importar CSV</button><button class="btn primary" data-action="new-asset">${icon('plus',16)} Novo equipamento</button>`:'';
  let body='';
- if(state.inventoryTab==='assets')body=`<div class="toolbar">${searchbar('Buscar tag, modelo, colaborador...')}<select class="select" id="filter-status"><option value="all">Todas as categorias</option>${assetCats.map(x=>`<option value="${esc(x)}" ${state.filter===x?'selected':''}>${esc(x)}</option>`).join('')}</select><button class="btn outline" data-action="report" data-report="inventario">${icon('download',15)} Relatório PDF</button></div>
- <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Patrimônio</th><th>Equipamento</th><th>Responsável</th><th>Setor</th><th>Localização</th><th>Unid.</th><th>Status</th>${isAdmin()?'<th></th>':''}</tr></thead><tbody>${filtered.map(a=>`<tr><td><strong>${esc(a.tag)}</strong></td><td><strong>${esc(a.category)} · ${esc(a.brand)}</strong><div class="cell-secondary">${esc(a.model)}</div></td><td>${esc(a.owner||'—')}</td><td>${esc(a.sector||'—')}</td><td>${esc(a.location||'—')}</td><td>${esc(a.quantity||1)}</td><td><span class="chip ${a.status==='Disponível'?'good':''}">${esc(a.status)}</span></td>${isAdmin()?`<td><button class="btn small outline" data-action="edit-asset" data-id="${esc(a.id)}">Editar</button></td>`:''}</tr>`).join('')}</tbody></table>${filtered.length?'':empty('Nenhum patrimônio encontrado.','Importe seu inventário ou cadastre um equipamento.')}</div>`;
- else if(state.inventoryTab==='movements')body=`<div class="toolbar">${isAdmin()?`<button class="btn primary" data-action="new-movement">${icon('plus',15)} Registrar movimentação</button>`:''}<button class="btn outline" data-action="report" data-report="movimentacoes">${icon('download',15)} PDF de movimentações</button></div><div class="panel table-wrap"><table class="data-table"><thead><tr><th>Data</th><th>Equipamento</th><th>Origem</th><th>Destino</th><th>Observações</th></tr></thead><tbody>${state.data.movements.map(x=>{const a=state.data.assets.find(a=>a.id===x.asset_id);return `<tr><td>${dateShort(x.movement_date+'T12:00:00')}</td><td><strong>${esc(a?.tag||'—')}</strong></td><td>${esc(x.from_owner||x.from_sector||'—')}</td><td>${esc(x.to_owner||x.to_sector||'—')}</td><td>${esc(x.notes||'—')}</td></tr>`;}).join('')}</tbody></table>${state.data.movements.length?'':empty('Nenhuma movimentação registrada.','Transfira um equipamento para manter o histórico atualizado.')}</div>`;
- else body=`<div class="toolbar">${isAdmin()?`<button class="btn primary" data-action="new-maintenance">${icon('plus',15)} Registrar manutenção</button>`:''}<button class="btn outline" data-action="report" data-report="manutencoes">${icon('download',15)} PDF de manutenções</button></div><div class="panel table-wrap"><table class="data-table"><thead><tr><th>Data</th><th>Patrimônio</th><th>Manutenção</th><th>Responsável</th><th>Situação</th></tr></thead><tbody>${state.data.maintenance.map(x=>{const a=state.data.assets.find(a=>a.id===x.asset_id);return `<tr><td>${dateShort(x.opened_at+'T12:00:00')}</td><td><strong>${esc(a?.tag||'—')}</strong></td><td><strong>${esc(x.title)}</strong><div class="cell-secondary">${esc(x.action_taken)}</div></td><td>${esc(x.technician||'—')}</td><td>${chip(x.status)}</td></tr>`;}).join('')}</tbody></table>${state.data.maintenance.length?'':empty('Nenhuma manutenção registrada.','Registre procedimentos técnicos realizados nos equipamentos.')}</div>`;
- return `${pageHero('Patrimônio','Inventário de TI','Equipamentos, celulares, cabos e acessórios por setor e responsável.',isAdmin()?`<button class="btn outline" data-action="import">${icon('upload',16)} Importar CSV</button><button class="btn primary" data-action="new-asset">${icon('plus',16)} Novo equipamento</button>`:'')}
- <div class="cards">${metric('Registros',state.data.assets.length,'package','Patrimônios e lotes cadastrados')}${metric('Unidades',total,'grid','Considerando quantidades')}${metric('Movimentações',state.data.movements.length,'refresh','Histórico de transferências')}${metric('Manutenções',state.data.maintenance.length,'settings','Procedimentos registrados')}</div>${tabs}${body}`;
+ if(state.inventoryTab==='assets'){
+  body=`<div class="toolbar asset-filters">${searchbar('Buscar GL, modelo, série, responsável...')}
+  <label class="asset-filter">Categoria<select class="select" data-asset-filter="category">${options(cats,filters.category)}</select></label>
+  <label class="asset-filter">Setor<select class="select" data-asset-filter="sector">${options(sectors,filters.sector)}</select></label>
+  <label class="asset-filter">Responsável<select class="select" data-asset-filter="owner">${options(owners,filters.owner)}</select></label>
+  <label class="asset-filter">Situação<select class="select" data-asset-filter="status">${options(statuses,filters.status)}</select></label>
+  <button class="btn outline" data-action="report" data-report="inventario">${icon('download',15)} Relatório PDF</button>
+  ${canEditInventory()?`<button class="btn outline" data-action="labels-selected" ${!state.selectedAssetIds.size?'disabled':''}>Etiquetas selecionadas (${state.selectedAssetIds.size})</button><button class="btn outline" data-action="labels-visible" ${!found.length?'disabled':''}>Etiquetas exibidas (${found.length})</button>`:''}</div>
+  <div class="panel table-wrap"><table class="data-table"><thead><tr>${canEditInventory()?'<th>Seleção</th>':''}<th>Patrimônio</th><th>Equipamento</th><th>Responsável</th><th>Setor</th><th>Localização</th><th>Unid.</th><th>Status</th></tr></thead><tbody>
+  ${found.map(a=>`<tr class="asset-clickable" tabindex="0" data-action="asset-detail" data-id="${esc(a.id)}" aria-label="Abrir patrimônio ${esc(a.tag)}">
+  ${canEditInventory()?`<td><input type="checkbox" data-action="select-asset" data-id="${esc(a.id)}" aria-label="Selecionar patrimônio ${esc(a.tag)}" ${state.selectedAssetIds.has(a.id)?'checked':''}></td>`:''}
+  <td><strong>${esc(a.tag)}</strong>${a.legacy_tag?`<small class="cell-secondary">Antiga: ${esc(a.legacy_tag)}</small>`:''}</td>
+  <td><strong>${esc(a.category)} · ${esc(a.brand)}</strong><div class="cell-secondary">${esc(a.model)} ${a.serial?'· Série '+esc(a.serial):''}</div></td>
+  <td>${esc(a.owner||'—')}</td><td>${esc(a.sector||'—')}</td><td>${esc(a.location||'—')}</td><td>${esc(a.quantity||1)}</td><td>${chip(a.status)}</td></tr>`).join('')}</tbody></table>${found.length?'':empty('Nenhum patrimônio encontrado.','Revise os filtros ou cadastre um equipamento.')}</div>`;
+ }else if(state.inventoryTab==='movements'){
+  body=`<div class="toolbar">${canEditInventory()?`<button class="btn primary" data-action="new-movement">${icon('plus',15)} Registrar movimentação</button>`:''}<button class="btn outline" data-action="report" data-report="movimentacoes">${icon('download',15)} PDF de movimentações</button></div>
+  <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Data</th><th>Equipamento</th><th>Origem</th><th>Destino</th><th>Observações</th></tr></thead><tbody>${state.data.movements.map(x=>{const a=state.data.assets.find(a=>a.id===x.asset_id);return `<tr><td>${dateShort(x.movement_date+'T12:00:00')}</td><td><button class="linkrow" data-action="asset-detail" data-id="${esc(x.asset_id)}">${esc(a?.tag||'—')}</button></td><td>${esc(x.from_owner||x.from_sector||'—')}</td><td>${esc(x.to_owner||x.to_sector||'—')}</td><td>${esc(x.notes||'—')}</td></tr>`;}).join('')}</tbody></table>${state.data.movements.length?'':empty('Nenhuma movimentação registrada.','O histórico aparecerá nesta aba.')}</div>`;
+ }else{
+  body=`<div class="toolbar">${canEditInventory()?`<button class="btn primary" data-action="new-maintenance">${icon('plus',15)} Registrar manutenção</button>`:''}<button class="btn outline" data-action="report" data-report="manutencoes">${icon('download',15)} PDF de manutenções</button></div>
+  <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Data</th><th>Patrimônio</th><th>Manutenção</th><th>Responsável</th><th>Situação</th></tr></thead><tbody>${state.data.maintenance.map(x=>{const a=state.data.assets.find(a=>a.id===x.asset_id);return `<tr><td>${dateShort(x.opened_at+'T12:00:00')}</td><td><button class="linkrow" data-action="asset-detail" data-id="${esc(x.asset_id)}">${esc(a?.tag||'—')}</button></td><td><strong>${esc(x.title)}</strong><div class="cell-secondary">${esc(x.action_taken)}</div></td><td>${esc(x.technician||'—')}</td><td>${chip(x.status)}</td></tr>`;}).join('')}</tbody></table>${state.data.maintenance.length?'':empty('Nenhuma manutenção registrada.','Os procedimentos aparecerão nesta aba.')}</div>`;
+ }
+ return `${pageHero('Patrimônio','Inventário de TI','Equipamentos da empresa com etiquetas GL, QR Code e histórico.',actions)}
+ ${state.inventoryMigrationMissing?'<div class="offline-notice mb-3">Execute a migração SQL do inventário GL no Supabase para habilitar cadastro e etiquetas.</div>':''}
+ <div class="cards">${metric('Registros',state.data.assets.length,'package','Patrimônios cadastrados')}${metric('Unidades',total,'grid','Equipamentos e lotes antigos')}${metric('Movimentações',state.data.movements.length,'refresh','Transferências registradas')}${metric('Manutenções',state.data.maintenance.length,'settings','Histórico técnico')}</div>${tabs}${body}`;
 }
 function activitiesPage(){const activities=[...state.data.activities].sort((a,b)=>String(b.date).localeCompare(String(a.date))).filter(a=>[a.title,a.category,a.sector,a.description].join(' ').toLowerCase().includes(state.search.toLowerCase()));const minutes=state.data.activities.reduce((sum,a)=>sum+Number(a.minutes||0),0);return `${pageHero('Rotina do suporte','Diário de atividades','Registre manutenções, apoio aos setores e trabalhos além dos chamados.',isAdmin()?`<button class="btn primary" data-action="new-activity">${icon('plus',16)} Nova atividade</button>`:'')}
  <div class="cards">${metric('Atividades',state.data.activities.length,'activity','Todos os registros')}${metric('Horas registradas',(minutes/60).toFixed(1).replace('.',',')+' h','clock','Soma de tempo informado')}${metric('Concluídas',state.data.activities.filter(a=>a.status==='Concluída').length,'check','Trabalhos finalizados')}${metric('Pendentes',state.data.activities.filter(a=>a.status!=='Concluída').length,'bell','Atividades em aberto')}</div>
@@ -174,6 +209,9 @@ function renderModal(){const m=state.modal;let title='',description='',body='',w
  if(m.type==='ticket'){const t=getTicket(m.id);if(!t)return '';title=`Chamado #${esc(t.number||'Pendente')}`;description=t.title;wide=true;const isPending=t.status==='pendente';const messages=state.data.messages.filter(x=>x.ticket_id===t.id).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));const reviewed=state.data.reviews.some(r=>r.ticket_id===t.id);body=`<div class="detail-grid"><div><small>Solicitante</small><b>${esc(t.requester_name)}</b></div><div><small>Setor</small><b>${esc(t.sector)}</b></div><div><small>Prioridade</small>${chip(t.urgency)}</div><div><small>Status</small>${chip(t.status)}</div><div><small>Categoria</small><b>${esc(t.category)}</b></div><div><small>Aberto em</small><b>${dateShort(t.created_at)}</b></div></div><h3>Descrição</h3><div class="detail-desc mt-2">${esc(t.description)}</div>
  ${isPending?'<div class="offline-notice mt-3">Este chamado está salvo somente neste computador e ainda não chegou à fila do TI. Ele será enviado quando a conexão voltar.</div>':''}
  ${canManage()&&!isPending?ticketTimerPanel(t):''}
+ ${!isPending&&canViewInventory()?`<section class="panel panel-pad mt-3"><h3>Patrimônio relacionado</h3>${t.asset_id?(()=>{const a=state.data.assets.find(a=>a.id===t.asset_id);return a?`<button class="btn outline small mt-2" data-action="asset-detail" data-id="${esc(a.id)}">${esc(a.tag)} · ${esc(a.category)} · ${esc(a.model)}</button>`:'';})():''}
+  ${canEditInventory()?`<form id="form-ticket-asset" data-id="${esc(t.id)}" class="toolbar mt-2"><select class="select" name="asset_id"><option value="">Sem patrimônio</option>${state.data.assets.filter(a=>a.status!=='Baixado'||a.id===t.asset_id).map(a=>`<option value="${esc(a.id)}" ${a.id===t.asset_id?'selected':''}>${esc(a.tag)} · ${esc(a.category)} · ${esc(a.model)}</option>`).join('')}</select><button class="btn primary small" type="submit">Associar</button></form>`:''}</section>`:''}
+
  ${canManage()&&state.data.reviews.some(r=>r.ticket_id===t.id)?(()=>{const r=state.data.reviews.find(r=>r.ticket_id===t.id);return `<section class="panel panel-pad mt-3"><h3>Avaliação do usuário</h3><p class="muted text-sm mt-2">${esc('★'.repeat(Number(r.rating)||0))} · Nota ${esc(r.rating)}/5 · ${r.resolved?'Problema resolvido':'Solicitação reaberta'}</p><p class="mt-2">${esc(r.comment||'Sem comentário')}</p></section>`;})():''}
  ${isAdmin()&&!isPending?`<form id="form-status" data-id="${esc(t.id)}" class="form-grid mt-3"><div class="span-2"><h3>Gerenciar atendimento</h3></div>${selection('status','Situação',Object.keys(statusNames),t.status)}${selection('urgency','Prioridade',Object.keys(urgencyNames),t.urgency)}<div class="form-actions span-2"><button class="btn primary" type="submit">Salvar alterações</button></div></form>`:''}
  <div class="separator"></div><h3>Histórico de mensagens</h3><div class="timeline mt-3">${messages.filter(msg=>isAdmin()||!msg.internal).map(msg=>`<div class="msg"><strong>${esc(msg.author_name||'Usuário')}</strong><small>${dateLong(msg.created_at)}</small><p>${esc(msg.body)}</p>${msg.internal?'<small>Nota interna</small>':''}</div>`).join('')||'<p class="muted text-sm">Nenhuma mensagem registrada.</p>'}</div>
@@ -187,7 +225,32 @@ function renderModal(){const m=state.modal;let title='',description='',body='',w
    description='A exclusão é definitiva e fica registrada na auditoria.';
    body=`<form id="form-delete-tickets" class="stack"><div class="auth-note"><strong>Atenção:</strong> ${ids.length} chamado(s) serão removidos do banco, incluindo mensagens, histórico de eventos e avaliações vinculadas. Não é possível desfazer essa ação.</div><div class="ticket-delete-preview">${ids.slice(0,8).map(id=>{const t=state.data.tickets.find(t=>t.id===id);return `<div>#${esc(t.number)} · ${esc(t.title)}</div>`;}).join('')}${ids.length>8?`<div>E mais ${ids.length-8} chamado(s)...</div>`:''}</div><div class="field"><label for="confirm-delete-tickets">Digite EXCLUIR para confirmar</label><input class="input" id="confirm-delete-tickets" name="confirmation" type="text" placeholder="EXCLUIR" pattern="EXCLUIR" autocomplete="off" required></div><div class="form-actions"><button type="button" class="btn outline" data-action="close-modal">Cancelar</button><button type="submit" class="btn danger">Excluir ${ids.length} chamado(s) definitivamente</button></div></form>`;
   }
- if(m.type==='asset'){const a=state.data.assets.find(a=>a.id===m.id)||{};title=m.id?'Editar patrimônio':'Cadastrar equipamento';description='Cadastre uma tag única no padrão GOAT-TI-CAT-001.';wide=true;body=`<form id="form-asset" data-id="${esc(m.id||'')}" class="form-grid">${field('tag','Tag patrimonial','text',a.tag||'', 'required pattern="GOAT-TI-[A-Z]+-[0-9]{3,}" placeholder="GOAT-TI-PC-001"')}${selection('category','Categoria',assetCats,a.category||'')}${field('brand','Marca','text',a.brand||'')}${field('model','Modelo','text',a.model||'')}${field('serial','Número de série','text',a.serial||'')}${field('owner','Colaborador responsável','text',a.owner||'')}${selection('sector','Setor',sectors,a.sector||'')}${field('location','Localização / estação','text',a.location||'')}${selection('status','Situação',['Em uso','Disponível','Em manutenção','Baixado'],a.status||'Em uso')}${selection('condition','Conservação',['Novo','Bom','Regular','Ruim','Defeituoso'],a.condition||'Bom')}${field('quantity','Quantidade','number',a.quantity||1,'min="1" step="1" required')}${field('imei','IMEI (se celular)','text',a.imei||'')}${field('line','Linha (se celular)','text',a.line||'')}<div class="span-2">${textarea('notes','Observações',a.notes||'')}</div><div class="span-2"><p class="muted text-xs">Não cadastre PIN, senha ou código de desbloqueio de celulares. Cabos podem ser controlados em lote pelo campo Quantidade.</p></div><div class="form-actions span-2"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Salvar patrimônio</button></div></form>`;}
+ if(m.type==='asset'){
+  if(!canEditInventory())return '';
+  const a=state.data.assets.find(a=>a.id===m.id)||{};
+  title=m.id?'Editar patrimônio':'Cadastrar equipamento';description='Código GL automático e permanente gerado pelo banco.';wide=true;
+  body=`<form id="form-asset" data-id="${esc(m.id||'')}" class="form-grid">
+   <div class="span-2 asset-tag-display">${m.id?`<strong>${esc(a.tag)}</strong>${a.legacy_tag?`<small>Anterior: ${esc(a.legacy_tag)}</small>`:''}`:'<strong>GL — gerado automaticamente no cadastro</strong>'}<small>O número é permanente e não poderá ser reutilizado.</small></div>
+   ${selection('category','Categoria',assetCats,a.category||'')}
+   ${field('brand','Marca / fabricante','text',a.brand||'')}
+   ${field('model','Modelo','text',a.model||'')}
+   ${field('serial','Número de série','text',a.serial||'')}
+   ${field('owner','Colaborador responsável','text',a.owner||'')}
+   ${selection('sector','Setor',sectors,a.sector||'')}
+   ${field('location','Localização física','text',a.location||'')}
+   ${selection('status','Situação',['Disponível','Em uso','Em manutenção','Armazenado','Baixado'],a.status||'Em uso')}
+   ${selection('condition','Conservação',['Novo','Bom','Regular','Ruim','Defeituoso'],a.condition||'Bom')}
+   ${field('acquired_on','Data de aquisição','date',a.acquired_on||'')}
+   ${field('warranty_until','Garantia até','date',a.warranty_until||'')}
+   ${field('last_checked_on','Última conferência física','date',a.last_checked_on||'')}
+   ${field('last_assigned_on','Data da atribuição','date',a.last_assigned_on||'')}
+   ${field('imei','IMEI (se celular)','text',a.imei||'')}
+   ${field('line','Linha (se aplicável)','text',a.line||'')}
+   <div class="span-2">${textarea('notes','Observações',a.notes||'')}</div>
+   <p class="span-2 muted text-xs">Patrimônios novos representam um equipamento por etiqueta. Lotes antigos permanecem registrados até conferência. Não informe PIN ou senhas.</p>
+   <div class="form-actions span-2"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Salvar equipamento</button></div>
+  </form>`;
+ }
  if(m.type==='movement'){
  title='Movimentar patrimônio';description='A alteração de responsável e setor ficará registrada no histórico.';
  const options=state.data.assets.map(a=>`<option value="${esc(a.id)}">${esc(a.tag)} · ${esc(a.model||a.category)}</option>`).join('');
@@ -202,7 +265,7 @@ function renderModal(){const m=state.modal;let title='',description='',body='',w
  if(m.type==='guide'){const g=resolveHelpArticles(state.data.guides,isAdmin()).find(x=>x.id===m.id);title=g?g.title:'Novo tutorial';description=g?g.summary:'Adicione um guia para dúvidas frequentes dos colaboradores.';body=g?`<div class="help-guide-intro"><div><div class="eyebrow">${esc(g.category)}</div><h3>Vamos resolver juntos!</h3><p>Confira cada etapa com calma. Se não funcionar, abra um chamado e o TI continuará de onde você parou.</p></div><img src="/assets/goati-mascot.png" alt="Mascote GOATi com óculos e polo"/></div><div>${(g.steps||[]).map((s,i)=>`<div class="guide-step"><span class="step-number">${i+1}</span><div>${esc(s)}</div></div>`).join('')}</div><div class="separator"></div><p class="muted text-sm mb-3">Conseguiu resolver seu problema?</p><div class="toolbar"><button class="btn outline" data-action="guide-solved">${icon('check',16)} Sim, resolveu</button><button class="btn primary" data-action="guide-ticket" data-title="${esc(g.title)}">${icon('ticket',16)} Não, abrir chamado</button></div>`:
  `<form id="form-guide" class="form-grid">${field('title','Título','text','','required')}${field('category','Categoria','text','','required')}${field('summary','Resumo','text','','required')}<div class="span-2">${textarea('steps','Passos (uma instrução por linha)','',10)}</div><div class="form-actions span-2"><button type="button" class="btn outline" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Publicar tutorial</button></div></form>`;}
  if(m.type==='rate'){const t=getTicket(m.id);title='Avaliar atendimento';description='Sua opinião nos ajuda a melhorar o suporte.';body=`<form id="form-rate" data-id="${esc(m.id)}" class="stack"><div class="field"><label>Como você avalia o atendimento?</label><div class="review-stars" role="radiogroup" aria-label="Nota de atendimento">${[1,2,3,4,5].map(n=>`<label class="review-star-choice"><input type="radio" name="rating" value="${n}" required><span aria-hidden="true">${'★'.repeat(n)}</span><small>${n} de 5</small></label>`).join('')}</div></div><div class="field"><label>O problema foi realmente resolvido?</label><select class="select" name="resolved" required><option value="true">Sim, está funcionando</option><option value="false">Não, ainda preciso de ajuda</option></select></div>${textarea('comment','Comentário (opcional)')}<div class="form-actions"><button type="button" class="btn outline" data-action="close-modal">Cancelar</button><button type="submit" class="btn primary">Enviar avaliação</button></div></form>`;}
- if(m.type==='user'){const u=state.data.profiles.find(u=>u.id===m.id);title='Acesso do colaborador';description=u?.full_name||'';body=`<form id="form-user" data-id="${esc(m.id)}" class="stack"><div class="field"><label>Perfil</label><select class="select" name="role">${[['funcionario','Funcionário'],['gestao','Gestão'],['admin','Administrador']].map(([v,n])=>`<option value="${v}" ${v===u.role?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>Situação da conta</label><select class="select" name="status">${[['pendente','Pendente de aprovação'],['ativo','Ativo'],['bloqueado','Bloqueado']].map(([v,n])=>`<option value="${v}" ${v===u.status?'selected':''}>${n}</option>`).join('')}</select></div><p class="muted text-xs">O bloqueio corta o acesso aos dados corporativos, inclusive com a sessão ainda aberta. Não compartilhe credenciais.</p><div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Salvar permissões</button></div></form>${u&&u.id!==userId()&&u.role!=='admin'?`<div class="separator"></div><button class="btn danger" data-action="ask-delete-user" data-id="${esc(u.id)}">Excluir conta do colaborador</button><p class="muted text-xs mt-2">Exclusão definitiva somente para contas sem histórico de atendimento. Caso tenha histórico, use Bloqueado.</p>`:''}`;}
+ if(m.type==='user'){const u=state.data.profiles.find(u=>u.id===m.id);title='Acesso do colaborador';description=u?.full_name||'';body=`<form id="form-user" data-id="${esc(m.id)}" class="stack"><div class="field"><label>Perfil</label><select class="select" name="role">${[['funcionario','Funcionário'],['gestao','Gestão'],['admin','Administrador']].map(([v,n])=>`<option value="${v}" ${v===u.role?'selected':''}>${n}</option>`).join('')}</select></div><div class="field"><label>Situação da conta</label><select class="select" name="status">${[['pendente','Pendente de aprovação'],['ativo','Ativo'],['bloqueado','Bloqueado']].map(([v,n])=>`<option value="${v}" ${v===u.status?'selected':''}>${n}</option>`).join('')}</select></div>${Object.prototype.hasOwnProperty.call(u,'can_manage_inventory')?`<label class="asset-permission"><input type="checkbox" name="can_manage_inventory" ${u.can_manage_inventory?'checked':''}> Autorizar este colaborador a administrar o inventário de TI (sem acesso a outros módulos restritos)</label>`:'<p class="muted text-xs">A permissão de TI aparecerá após aplicar a migração patrimonial GL.</p>'}<p class="muted text-xs">O bloqueio corta o acesso aos dados corporativos, inclusive com a sessão ainda aberta. Não compartilhe credenciais.</p><div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Salvar permissões</button></div></form>${u&&u.id!==userId()&&u.role!=='admin'?`<div class="separator"></div><button class="btn danger" data-action="ask-delete-user" data-id="${esc(u.id)}">Excluir conta do colaborador</button><p class="muted text-xs mt-2">Exclusão definitiva somente para contas sem histórico de atendimento. Caso tenha histórico, use Bloqueado.</p>`:''}`;}
  if(m.type==='delete-user'){
   if(!isAdmin())return '';
   const u=state.data.profiles.find(p=>p.id===m.id);
@@ -211,7 +274,46 @@ function renderModal(){const m=state.modal;let title='',description='',body='',w
   description=u.full_name||'Colaborador';
   body=`<form id="form-delete-user" data-id="${esc(u.id)}" class="stack"><div class="auth-note"><strong>Atenção:</strong> a conta será excluída também da autenticação do Supabase e não poderá mais entrar. A ação é irreversível. Se houver chamados, mensagens, avaliações ou atendimentos vinculados, a exclusão será recusada para preservar o histórico; nesse caso, bloqueie a conta.</div><p><strong>${esc(u.full_name)}</strong> · ${esc(u.email)}</p><div class="field"><label for="delete-user-confirm">Digite EXCLUIR para confirmar</label><input class="input" id="delete-user-confirm" name="confirmation" type="text" autocomplete="off" pattern="EXCLUIR" placeholder="EXCLUIR" required></div><div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn danger" type="submit">Excluir esta conta</button></div></form>`;
  }
- if(m.type==='import'){title='Importar inventário';description='Aceita CSV exportado das abas Equipamentos, Celulares ou Cabos da planilha da organização.';body=`<form id="form-import" class="stack"><div class="field"><label>Origem dos dados</label><select class="select" name="kind"><option value="Equipamentos">Equipamentos</option><option value="Celulares">Celulares</option><option value="Cabos">Cabos</option></select></div><div class="field"><label>Arquivo .csv</label><input class="input" type="file" name="file" accept=".csv,text/csv" required><span class="hint">No Excel, abra a aba desejada e use Arquivo → Salvar como → CSV UTF-8.</span></div><p class="muted text-xs">Tags existentes serão ignoradas para não duplicar patrimônios. Revise os dados importados, principalmente IMEI e quantidade.</p><div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Importar registros</button></div></form>`;}
+ if(m.type==='asset-detail'){
+  if(!canViewInventory())return '';
+  const a=state.data.assets.find(a=>a.id===m.id);if(!a)return '';
+  title='Patrimônio '+a.tag;description=[a.category,a.brand,a.model].filter(Boolean).join(' · ');wide=true;
+  const events=state.data.assetEvents.filter(x=>x.asset_id===a.id).slice(0,40);
+  const linked=ownTickets().filter(t=>t.asset_id===a.id);
+  const qr=(()=>{try{return qrSvg(a.tag,175);}catch(e){return '<p class="muted text-xs">Não foi possível gerar o QR Code neste navegador.</p>';}})();
+  body=`<div class="asset-detail-top"><div class="asset-detail-qr">${qr}<strong>${esc(a.tag)}</strong></div><div class="stack"><div class="detail-grid"><div><small>Categoria</small><b>${esc(a.category)}</b></div><div><small>Marca e modelo</small><b>${esc([a.brand,a.model].filter(Boolean).join(' ')||'—')}</b></div><div><small>Número de série</small><b>${esc(a.serial||'—')}</b></div><div><small>Situação</small>${chip(a.status)}</div><div><small>Responsável</small><b>${esc(a.owner||'—')}</b></div><div><small>Setor</small><b>${esc(a.sector||'—')}</b></div><div><small>Localização</small><b>${esc(a.location||'—')}</b></div><div><small>Conservação</small><b>${esc(a.condition||'—')}</b></div><div><small>Data de aquisição</small><b>${esc(a.acquired_on||'—')}</b></div><div><small>Garantia até</small><b>${esc(a.warranty_until||'—')}</b></div><div><small>Última conferência</small><b>${esc(a.last_checked_on||'—')}</b></div><div><small>Unidades</small><b>${esc(a.quantity||1)}</b></div></div>
+  ${a.legacy_tag?`<p class="muted text-xs">Etiqueta anterior: ${esc(a.legacy_tag)}</p>`:''}
+  <p class="muted text-xs">${esc(a.notes||'Sem observações.')}</p>
+  <div class="toolbar">${canEditInventory()?`<button class="btn primary small" data-action="asset-label" data-id="${esc(a.id)}">${icon('printer',16)} Gerar etiqueta PDF</button><button class="btn outline small" data-action="edit-asset" data-id="${esc(a.id)}">Editar</button>`:''}<button class="btn outline small" data-action="copy-asset-link" data-id="${esc(a.id)}">Copiar link do QR</button></div>
+  </div></div>
+  <div class="separator"></div><h3>Chamados relacionados (${linked.length})</h3>
+  <div class="stack mt-2">${linked.map(t=>`<button class="btn outline asset-related-ticket" data-action="ticket" data-id="${esc(t.id)}">#${esc(t.number)} · ${esc(t.title)} · ${esc(t.status)}</button>`).join('')||'<p class="muted text-xs">Nenhum chamado visível associado a este patrimônio.</p>'}</div>
+  <div class="separator"></div><h3>Movimentações e manutenções</h3>
+  <div class="stack mt-2">${state.data.movements.filter(x=>x.asset_id===a.id).map(x=>`<div class="asset-history-entry"><strong>Movimentação · ${esc(x.to_sector||x.to_owner||'—')}</strong><small>${esc(x.movement_date)} · ${esc(x.notes||'Sem observações')}</small></div>`).join('')}${state.data.maintenance.filter(x=>x.asset_id===a.id).map(x=>`<div class="asset-history-entry"><strong>Manutenção · ${esc(x.title)}</strong><small>${esc(x.opened_at)} · ${esc(x.status)}</small></div>`).join('')||(!state.data.movements.some(x=>x.asset_id===a.id)?'<p class="muted text-xs">Nenhum movimento ou manutenção.</p>':'')}</div>
+  <div class="separator"></div><h3>Auditoria patrimonial</h3>
+  <div class="stack mt-2">${events.map(ev=>`<div class="asset-history-entry"><strong>${esc(ev.event_type)}</strong><small>${dateLong(ev.created_at)} · ${esc(state.data.profiles.find(p=>p.id===ev.actor_id)?.full_name||'Equipe autorizada')}</small></div>`).join('')||'<p class="muted text-xs">Nenhum evento adicional registrado nesta versão.</p>'}</div>`;
+ }
+ if(m.type==='labels'){
+  if(!canEditInventory())return '';
+  const assets=[...new Set(m.ids||[])].map(id=>state.data.assets.find(a=>a.id===id)).filter(Boolean);if(!assets.length)return '';
+  title=assets.length===1?'Etiqueta patrimonial':'Etiquetas em lote';
+  description=assets.length+' etiqueta(s) · impressão em papel A4';wide=true;
+  const preview=(()=>{try{return qrSvg(assets[0].tag,142);}catch{return '<p>QR indisponível</p>';}})();
+  body=`<form id="form-labels" class="stack"><div class="asset-label-preview"><div>${preview}</div><div><strong>${esc(assets[0].tag)}</strong><p>GOATi Manager · TI</p><small>${esc(assets[0].category)} · ${esc(assets[0].brand)} ${esc(assets[0].model)}</small></div></div>${assets.length>1?`<p class="muted text-xs">Este é um exemplo. O PDF terá todas as ${assets.length} etiquetas selecionadas.</p>`:''}
+  <label class="field">Tamanho da etiqueta<select class="select" name="label_size">${LABEL_SIZES.map(x=>`<option value="${esc(x.key)}" ${x.key==='60x30'?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label>
+  <p class="muted text-xs">O PDF será gerado em folha A4. Imprima em escala real (100%) para manter as dimensões. A reimpressão não altera o patrimônio.</p>
+  <div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">${icon('download',16)} Exportar etiquetas PDF</button></div></form>`;
+ }
+ if(m.type==='import-preview'){
+  if(!canEditInventory()||!state.importPreview)return '';
+  const p=state.importPreview;title='Conferir importação';description='Nenhum registro foi salvo ainda.';wide=true;
+  body=`<div class="stack"><p><strong>${p.expanded}</strong> equipamento(s) de <strong>${p.rows}</strong> linha(s). <strong>${p.errors.length}</strong> erro(s) encontrados.</p>
+  ${p.errors.length?`<section class="offline-notice"><strong>Corrija o CSV antes de importar.</strong><div class="stack mt-2">${p.errors.slice(0,20).map(e=>`<small>Linha ${e.line}: ${esc(e.message)}</small>`).join('')}</div>${p.errors.length>20?'<small>Há outros erros; revise o arquivo completo.</small>':''}</section>`:''}
+  <div class="table-wrap"><table class="data-table"><thead><tr><th>Linha</th><th>Categoria</th><th>Marca/Modelo</th><th>Série</th><th>Quantidade</th></tr></thead><tbody>${p.preview.slice(0,15).map(item=>`<tr><td>${item.line}</td><td>${esc(item.category)}</td><td>${esc(item.brand)} ${esc(item.model)}</td><td>${esc(item.serial||'—')}</td><td>${item.quantity}</td></tr>`).join('')}</tbody></table></div>
+  <p class="muted text-xs">Todas as etiquetas GL serão geradas pelo banco em uma única operação. Se alguma linha falhar, nenhuma será cadastrada.</p>
+  <div class="form-actions"><button type="button" class="btn outline" data-action="close-modal">Cancelar</button><button class="btn primary" data-action="confirm-import" ${p.errors.length||!p.items.length?'disabled':''}>Confirmar importação (${p.items.length})</button></div></div>`;
+ }
+ if(m.type==='import'){title='Importar inventário';description='Aceita CSV exportado das abas Equipamentos, Celulares ou Cabos da planilha da organização.';body=`<form id="form-import" class="stack"><div class="field"><label>Origem dos dados</label><select class="select" name="kind"><option value="Equipamentos">Equipamentos</option><option value="Celulares">Celulares</option><option value="Cabos">Cabos</option></select></div><div class="field"><label>Arquivo .csv</label><input class="input" type="file" name="file" accept=".csv,text/csv" required><span class="hint">No Excel, abra a aba desejada e use Arquivo → Salvar como → CSV UTF-8.</span></div><p class="muted text-xs">Os patrimônios GL são gerados automaticamente. A próxima etapa mostra uma prévia e erros, sem gravar registros.</p><div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Validar e visualizar</button></div></form>`;}
  return `<div class="modal-bg" data-action="close-backdrop"><section class="modal ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header class="modal-head"><div><h2>${title}</h2><p>${description}</p></div><button class="icon-btn" data-action="close-modal" aria-label="Fechar">${icon('close',18)}</button></header><div class="modal-body">${body}</div></section></div>`;
 }
 function authPage(){document.documentElement.dataset.theme=state.theme;let heading='Bem-vindo de volta',sub='Acesse sua central de operações e suporte.';
@@ -246,28 +348,30 @@ async function init(){
   if(recovering){state.authView='reset';authPage();return;}
   if(cloud.session){
    try{await loadAccount();return;}
-   catch(e){const cached=JSON.parse(localStorage.getItem('goat-ti-offline-profile')||'null');if(!navigator.onLine&&cached&&cached.id===cloud.userId&&cached.status==='ativo'){state.profile=cached;state.user={id:cached.id};state.role=cached.role;state.queue=await storage.queueList();state.data={timeEntries:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};renderShell();return;}toast('Sessão indisponível. Entre novamente.','error');}
+   catch(e){const cached=JSON.parse(localStorage.getItem('goat-ti-offline-profile')||'null');if(!navigator.onLine&&cached&&cached.id===cloud.userId&&cached.status==='ativo'){state.profile=cached;state.user={id:cached.id};state.role=cached.role;state.queue=await storage.queueList();state.data={timeEntries:[],assetEvents:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};renderShell();return;}toast('Sessão indisponível. Entre novamente.','error');}
   }
  }
+ if(state.assetDeepLink)state.authView='login';
  authPage();
 }
-async function startDemo(role){const box=await storage.get('demo-data');state.data=normalizeData(box?.value);await storage.put('demo-data',state.data);state.role=role;state.user={id:role==='admin'?'demo-admin':role==='gestao'?'demo-manager':'demo-func'};state.profile=state.data.profiles.find(p=>p.id===state.user.id);state.queue=[];state.seenPendingUsers.clear();state.pendingUsersInitialized=false;state.view='dashboard';state.search='';state.filter='all';rememberPendingProfiles(state.data.profiles);startTimerDisplay();renderShell();showReviewPromptIfNeeded();}
-async function loadAccount(){const profile=await cloud.profile();if(!profile)throw new Error('Perfil ainda não foi criado.');state.profile=profile;state.role=profile.role;state.user={id:profile.id};localStorage.setItem('goat-ti-offline-profile',JSON.stringify(profile));if(profile.status!=='ativo'){renderPending();return;}state.queue=await storage.queueList();state.seenPendingUsers.clear();state.pendingUsersInitialized=false;await refreshCloud();startPolling();startTimerDisplay();await flushQueue();showReviewPromptIfNeeded();}
+async function startDemo(role){const box=await storage.get('demo-data');state.data=normalizeData(box?.value);await storage.put('demo-data',state.data);state.role=role;state.user={id:role==='admin'?'demo-admin':role==='gestao'?'demo-manager':'demo-func'};state.profile=state.data.profiles.find(p=>p.id===state.user.id);state.queue=[];state.seenPendingUsers.clear();state.pendingUsersInitialized=false;state.view='dashboard';state.search='';state.filter='all';rememberPendingProfiles(state.data.profiles);startTimerDisplay();renderShell();openDeepLinkedAsset();showReviewPromptIfNeeded();}
+async function loadAccount(){const profile=await cloud.profile();if(!profile)throw new Error('Perfil ainda não foi criado.');state.profile=profile;state.role=profile.role;state.user={id:profile.id};localStorage.setItem('goat-ti-offline-profile',JSON.stringify(profile));if(profile.status!=='ativo'){renderPending();return;}state.queue=await storage.queueList();state.seenPendingUsers.clear();state.pendingUsersInitialized=false;await refreshCloud();startPolling();startTimerDisplay();await flushQueue();openDeepLinkedAsset();showReviewPromptIfNeeded();}
 function renderPending(){app.innerHTML=`<div class="auth-page"><div class="auth-showcase"><div class="auth-showcase-inner"><h1>Seu acesso está <span class="auth-accent">${esc(state.profile.status==='bloqueado'?'bloqueado':'pendente de regularização')}.</span></h1><p>Seu cadastro não está ativo. Entre em contato com a equipe de TI para verificar a situação.</p></div></div><div class="auth-content"><div class="auth-box"><div class="auth-logo">GOATi Manager</div><h2>${state.profile.status==='bloqueado'?'Acesso bloqueado':'Cadastro pendente'}</h2><p>Entre em contato com a equipe de TI da organização, se necessário.</p><button class="btn outline" data-action="logout">Sair da conta</button></div></div></div>`;}
 async function refreshCloud(){if(!configured||!state.user||state.profile.status!=='ativo')return;
- const [tickets,assets,movements,maintenance,activities,reviews,messages,profiles,cloudGuides,timeEntries]=await Promise.all([
+ const [tickets,assets,movements,maintenance,activities,reviews,messages,profiles,cloudGuides,timeEntries,assetEvents]=await Promise.all([
   cloud.listAll('tickets',{params:{order:'created_at.desc',limit:'1000'}}),
-  canManage()?cloud.listAll('assets',{params:{order:'tag.asc',limit:'3000'}}):Promise.resolve([]),
-  canManage()?cloud.listAll('asset_movements',{params:{order:'created_at.desc',limit:'2000'}}):Promise.resolve([]),
-  canManage()?cloud.listAll('asset_maintenance',{params:{order:'created_at.desc',limit:'2000'}}):Promise.resolve([]),
+  canViewInventory()?cloud.listAll('assets',{params:{order:'tag.asc',limit:'3000'}}):Promise.resolve([]),
+  canViewInventory()?cloud.listAll('asset_movements',{params:{order:'created_at.desc',limit:'2000'}}):Promise.resolve([]),
+  canViewInventory()?cloud.listAll('asset_maintenance',{params:{order:'created_at.desc',limit:'2000'}}):Promise.resolve([]),
   canManage()?cloud.listAll('activities',{params:{order:'date.desc',limit:'1000'}}):Promise.resolve([]),
   cloud.listAll('reviews',{params:{order:'created_at.desc',limit:'1000'}}),
   cloud.listAll('ticket_messages',{params:{order:'created_at.asc',limit:'2000'}}),
   canManage()?cloud.listAll('profiles',{params:{order:'created_at.desc',limit:'1000'}}):Promise.resolve([state.profile]),
   cloud.listAll('guides',{params:{order:'created_at.desc',limit:'500'}}),
-  canManage()?cloud.listAll('ticket_time_entries',{params:{order:'started_at.desc',limit:'5000'}}).then(rows=>{state.timerMigrationMissing=false;return rows;}).catch(e=>{if(/PGRST205|schema cache|Could not find the table|42P01|relation.*does not exist/i.test(e.message)){state.timerMigrationMissing=true;return [];}throw e;}):Promise.resolve([])
+  canManage()?cloud.listAll('ticket_time_entries',{params:{order:'started_at.desc',limit:'5000'}}).then(rows=>{state.timerMigrationMissing=false;return rows;}).catch(e=>{if(/PGRST205|schema cache|Could not find the table|42P01|relation.*does not exist/i.test(e.message)){state.timerMigrationMissing=true;return [];}throw e;}):Promise.resolve([]),
+  canViewInventory()?cloud.listAll('asset_events',{params:{order:'created_at.desc',limit:'5000'}}).then(rows=>{state.inventoryMigrationMissing=false;return rows;}).catch(e=>{if(/PGRST205|schema cache|Could not find the table|42P01|relation.*does not exist/i.test(e.message)){state.inventoryMigrationMissing=true;return [];}throw e;}):Promise.resolve([])
  ]);
- const groups={tickets,assets,movements,maintenance,activities,reviews,messages,profiles,guides:cloudGuides,timeEntries};state.data=Object.fromEntries(Object.entries(groups).map(([k,v])=>[k,Array.isArray(v)?v:[]]));state.selectedTicketIds=new Set([...state.selectedTicketIds].filter(id=>state.data.tickets.some(t=>t.id===id)));state.queue=await storage.queueList();rememberPendingProfiles(profiles);
+ const groups={tickets,assets,movements,maintenance,activities,reviews,messages,profiles,guides:cloudGuides,timeEntries,assetEvents};state.data=Object.fromEntries(Object.entries(groups).map(([k,v])=>[k,Array.isArray(v)?v:[]]));state.selectedTicketIds=new Set([...state.selectedTicketIds].filter(id=>state.data.tickets.some(t=>t.id===id)));state.selectedAssetIds=new Set([...state.selectedAssetIds].filter(id=>state.data.assets.some(a=>a.id===id)));state.queue=await storage.queueList();rememberPendingProfiles(profiles);
  if(!state.lastNotified.size)tickets.forEach(t=>state.lastNotified.add(t.id));
  renderShell();}
 async function checkEmployeeReviewUpdates(){
@@ -281,7 +385,7 @@ async function checkEmployeeReviewUpdates(){
  if(!state.user||userId()!==uid||canManage())return;
  if(!profile||profile.status!=='ativo'){
   state.profile=profile||{...state.profile,status:'bloqueado'};
-  state.data={timeEntries:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};
+  state.data={timeEntries:[],assetEvents:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};
   renderPending();return;
  }
  const updated=tickets.some(t=>state.data.tickets.find(old=>old.id===t.id)?.status!==t.status)
@@ -337,7 +441,7 @@ async function submitTicket(data){
   else throw e;
  }}
  state.modal=null;state.view='chamados';await reload();}
-function report(kind){if(!canManage())return;const ts=periodFilter(state.data.tickets,'created_at'),acts=periodFilter(state.data.activities,'date'),revs=periodFilter(state.data.reviews,'created_at');let title,headers,rows,metrics=[],details=[];
+function report(kind){if(!canManage()&&!(canViewInventory()&&['inventario','movimentacoes','manutencoes'].includes(kind)))return;const ts=periodFilter(state.data.tickets,'created_at'),acts=periodFilter(state.data.activities,'date'),revs=periodFilter(state.data.reviews,'created_at');let title,headers,rows,metrics=[],details=[];
  const interval=state.period==='diario'?'Diário':state.period==='semanal'?'Semanal':state.period==='mensal'?'Mensal':'Período personalizado';
  if(kind==='chamados'){title=`Relatório ${interval} de Chamados`;headers=['Nº','Data','Solicitante','Setor','Situação','Tempo TI','Título'];rows=ts.map(t=>[t.number||'',dateShort(t.created_at),t.requester_name,t.sector,statusNames[t.status]||t.status,formatDuration(ticketTotalSeconds(t.id)),t.title]);metrics=[['Tempo de TI',formatDuration(ts.reduce((s,t)=>s+ticketTotalSeconds(t.id),0))],['Total de chamados',ts.length],['Resolvidos',ts.filter(t=>t.status==='resolvido').length],['Em andamento',ts.filter(t=>t.status==='andamento').length],['Abertos',ts.filter(t=>t.status==='aberto').length]];}
  else if(kind==='atividades'){title=`Relatório ${interval} de Atividades`;headers=['Data','Atividade','Categoria','Setor','Duração'];rows=acts.map(a=>[dateShort(a.date+'T12:00:00'),a.title,a.category,a.sector,(a.minutes||0)+' min']);metrics=[['Atividades',acts.length],['Horas registradas',(acts.reduce((sum,a)=>sum+Number(a.minutes||0),0)/60).toFixed(1)+' h']];}
@@ -359,17 +463,18 @@ function report(kind){if(!canManage())return;const ts=periodFilter(state.data.ti
  else return;
  downloadPDF({title,subtitle:'GOATi Manager  |  Emitido em '+dateLong(now()),headers,rows,metrics,details,filename:`GOATi_${kind}_${today()}.pdf`});toast('Relatório PDF gerado.','success');}
 function formData(form){return new FormData(form);}
-async function importData(form){const fd=formData(form),kind=fd.get('kind'),file=fd.get('file');if(!(file instanceof File)||!file.size)throw new Error('Selecione um arquivo CSV.');if(file.size>2_000_000)throw new Error('CSV muito grande (limite de 2 MB por importação).');const parsed=parseCSV((await file.text()).replace(/^\ufeff/,''));const headIndex=parsed.findIndex(r=>r.some(c=>/tag de patrim[oô]nio|tag do patrim[oô]nio|c[oó]digo \/ tag/i.test(c)));if(headIndex===-1)throw new Error('Cabeçalho não identificado. Salve a aba Equipamentos, Celulares ou Cabos como CSV.');const headers=parsed[headIndex].map(s=>s.trim());const idx=(name)=>headers.findIndex(h=>h.toLowerCase()===name.toLowerCase());const val=(r,n)=>{const i=idx(n);return i>=0?String(r[i]||'').trim():''};let count=0,skipped=0;const existing=new Set(state.data.assets.map(a=>a.tag));const used={};for(const row of parsed.slice(headIndex+1)){
-  let tag=val(row,'Tag de patrimônio')||val(row,'Tag do patrimônio')||val(row,'Código / tag (opcional)');
-  if(!tag && kind==='Cabos')tag='GOAT-TI-CAB-'+String(1+Math.max(0,...[...existing].filter(t=>/^GOAT-TI-CAB-\d+$/.test(t)).map(t=>Number(t.split('-').pop())))).padStart(3,'0');
-  if(!/^GOAT-TI-[A-Z]+-\d{3,}$/.test(tag)||existing.has(tag)){skipped++;continue;}
-  const base={id:makeId(),tag,quantity:1,status:'Em uso',condition:'Bom',category:kind==='Celulares'?'Celular':kind==='Cabos'?'Cabo':val(row,'Categoria')||'Outro',brand:val(row,'Marca'),model:val(row,'Modelo'),serial:val(row,'Nº de série'),sector:val(row,'Setor')||val(row,'Setor / responsável'),owner:val(row,'Colaborador responsável'),location:val(row,'Localização / estação')||val(row,'Localização')||val(row,'Localização / estoque'),imei:val(row,'IMEI 1'),line:val(row,'Nº da linha'),notes:val(row,'Observações')};
-  if(kind==='Cabos'){base.model=[val(row,'Tipo de cabo'),val(row,'Comprimento (m)')?val(row,'Comprimento (m)')+' m':''].filter(Boolean).join(' · ');base.quantity=Math.max(1,Number(val(row,'Quantidade total'))||1);base.condition=val(row,'Condição')||'Bom';base.status='Disponível';}
-  else if(kind==='Celulares'){base.status=val(row,'Situação')||'Em uso';base.owner=val(row,'Colaborador responsável');}
-  else {base.status=val(row,'Status')||'Em uso';base.condition=val(row,'Conservação')||'Bom';}
-  await createRecord('assets',base);existing.add(tag);count++;
- }
- toast(`${count} registro(s) importado(s); ${skipped} ignorado(s).`,'success');state.modal=null;await reload();}
+async function importData(form){
+ if(!canEditInventory())throw new Error('Sem permissão para importar.');
+ requireInventoryReady();
+ const fd=formData(form),kind=fd.get('kind'),file=fd.get('file');
+ if(!(file instanceof File)||!file.size)throw new Error('Selecione um arquivo CSV.');
+ if(file.size>2_000_000)throw new Error('CSV muito grande (limite 2 MB).');
+ const parsed=parseCSV((await file.text()).replace(/^\ufeff/,''));
+ const headIndex=parsed.findIndex(r=>r.some(c=>/tag de patrim[oô]nio|tag do patrim[oô]nio|c[oó]digo \/ tag|categoria|modelo|n[uú]mero de s[eé]rie|setor|fabricante|marca/i.test(c)));
+ if(headIndex<0)throw new Error('Cabeçalho de equipamentos não identificado.');
+ state.importPreview=prepareAssetImport(parsed.slice(headIndex),kind,state.data.assets);
+ state.modal={type:'import-preview'};renderShell();
+}
 async function handleAction(el,event){const act=el.dataset.action;
  if(act==='close-backdrop'){if(event.target!==el)return;state.modal=null;renderShell();showReviewPromptIfNeeded();return;}
  if(act==='close-modal'){state.modal=null;renderShell();showReviewPromptIfNeeded();return;}
@@ -378,7 +483,7 @@ async function handleAction(el,event){const act=el.dataset.action;
  if(act==='help-category'){state.filter=el.dataset.category||'all';renderShell();return;}
  if(act==='help-reset'){state.filter='all';state.search='';renderShell();return;}
  if(act==='help-all'){state.filter='all';state.search='';renderShell();document.getElementById('help-directory')?.scrollIntoView({behavior:'smooth',block:'start'});return;}
- if(act==='go'){const v=el.dataset.view;if(!navs.some(n=>n.key===v))return;const n=navs.find(n=>n.key===v);if(n.admin&&!isAdmin()||n.manager&&!canManage())return;state.view=v;state.search='';state.filter='all';state.mobile=false;state.modal=null;renderShell();window.scrollTo(0,0);return;}
+ if(act==='go'){const v=el.dataset.view;if(!navs.some(n=>n.key===v))return;const n=navs.find(n=>n.key===v);if(n.admin&&!isAdmin()||n.manager&&!canManage()||n.inventory&&!canViewInventory())return;state.view=v;state.search='';state.filter='all';state.mobile=false;state.modal=null;renderShell();window.scrollTo(0,0);return;}
  if(act==='review-pending'&&isAdmin()){openPendingApproval();return;}
  if(act==='new-ticket'){state.modal={type:'new-ticket'};renderShell();return;}
  if(act==='ticket'){state.modal={type:'ticket',id:el.dataset.id};renderShell();return;}
@@ -408,11 +513,53 @@ async function handleAction(el,event){const act=el.dataset.action;
  if(act==='select-visible-tickets'&&isAdmin()){document.querySelectorAll('input[data-action="select-ticket"]').forEach(input=>{if(state.data.tickets.some(t=>t.id===input.dataset.id))state.selectedTicketIds.add(input.dataset.id);});renderShell();return;}
  if(act==='delete-selected-tickets'&&isAdmin()){const ids=[...state.selectedTicketIds].filter(id=>state.data.tickets.some(t=>t.id===id));if(!ids.length){toast('Selecione pelo menos um chamado.','error');return;}state.modal={type:'delete-tickets',ids};renderShell();return;}
  if(act==='ask-delete-ticket'&&isAdmin()){const id=el.dataset.id;if(!state.data.tickets.some(t=>t.id===id))return;state.modal={type:'delete-tickets',ids:[id]};renderShell();return;}
- if(act==='new-asset'&&isAdmin()){state.modal={type:'asset'};renderShell();return;}
+ if(act==='new-asset'&&canEditInventory()){requireInventoryReady();state.modal={type:'asset'};renderShell();return;}
+ if(act==='asset-detail'&&canViewInventory()){
+  if(!state.data.assets.some(a=>a.id===el.dataset.id))return;
+  state.modal={type:'asset-detail',id:el.dataset.id};renderShell();return;
+ }
+ if(act==='select-asset'&&canEditInventory()){
+  if(!state.data.assets.some(a=>a.id===el.dataset.id))return;
+  if(el.checked)state.selectedAssetIds.add(el.dataset.id);else state.selectedAssetIds.delete(el.dataset.id);
+  renderShell();return;
+ }
+ if(act==='labels-visible'&&canEditInventory()){
+  requireInventoryReady();
+  const ids=[...document.querySelectorAll('tr.asset-clickable[data-id]')].map(tr=>tr.dataset.id);
+  if(!ids.length)return;
+  state.modal={type:'labels',ids};renderShell();return;
+ }
+ if(act==='labels-selected'&&canEditInventory()){
+  requireInventoryReady();
+  const ids=[...state.selectedAssetIds].filter(id=>state.data.assets.some(a=>a.id===id));
+  if(!ids.length)throw new Error('Selecione patrimônios para imprimir.');
+  state.modal={type:'labels',ids};renderShell();return;
+ }
+ if(act==='asset-label'&&canEditInventory()){
+  requireInventoryReady();
+  state.modal={type:'labels',ids:[el.dataset.id]};renderShell();return;
+ }
+ if(act==='copy-asset-link'&&canViewInventory()){
+  const a=state.data.assets.find(x=>x.id===el.dataset.id);if(!a)return;
+  await navigator.clipboard.writeText(qrTarget(a.tag));toast('Link da ficha copiado.','success');return;
+ }
+ if(act==='confirm-import'&&canEditInventory()){
+  requireInventoryReady();
+  if(!demo&&!navigator.onLine)throw new Error('A importação requer internet.');
+  const preview=state.importPreview;
+  if(state.modal?.type!=='import-preview'||!preview||!preview.items.length||preview.errors.length)throw new Error('Revise o arquivo CSV antes de importar.');
+  const batch=preview.items.map(x=>({...x,id:makeId()}));
+  if(demo){
+   const items=[...state.data.assets];for(const asset of batch){asset.tag=getNextDemoAssetTag(items);items.push(asset);}
+   state.data.assets=items;await persist();
+  }else await cloud.insert('assets',batch); // POST em lote: transação única no PostgreSQL.
+  const count=batch.length;state.importPreview=null;state.modal=null;
+  await reload();toast(count+' patrimônio(s) importado(s) com código GL.','success');return;
+ }
  if(act==='inventory-tab'){state.inventoryTab=el.dataset.tab;state.search='';state.filter='all';renderShell();return;}
- if(act==='new-movement'&&isAdmin()){state.modal={type:'movement'};renderShell();return;}
- if(act==='new-maintenance'&&isAdmin()){state.modal={type:'maintenance'};renderShell();return;}
- if(act==='edit-asset'&&isAdmin()){state.modal={type:'asset',id:el.dataset.id};renderShell();return;}
+ if(act==='new-movement'&&canEditInventory()){requireInventoryReady();state.modal={type:'movement'};renderShell();return;}
+ if(act==='new-maintenance'&&canEditInventory()){requireInventoryReady();state.modal={type:'maintenance'};renderShell();return;}
+ if(act==='edit-asset'&&canEditInventory()){requireInventoryReady();state.modal={type:'asset',id:el.dataset.id};renderShell();return;}
  if(act==='new-activity'&&isAdmin()){state.modal={type:'activity'};renderShell();return;}
  if(act==='guide'){state.modal={type:'guide',id:el.dataset.id};renderShell();return;}
  if(act==='new-guide'&&isAdmin()){state.modal={type:'guide'};renderShell();return;}
@@ -421,7 +568,7 @@ async function handleAction(el,event){const act=el.dataset.action;
  if(act==='rate'){state.modal={type:'rate',id:el.dataset.id};renderShell();return;}
  if(act==='edit-user'&&isAdmin()){state.modal={type:'user',id:el.dataset.id};renderShell();return;}
  if(act==='ask-delete-user'&&isAdmin()){const p=state.data.profiles.find(x=>x.id===el.dataset.id);if(!p||p.id===userId()||p.role==='admin')throw new Error('Não é permitido excluir esta conta.');state.modal={type:'delete-user',id:p.id};renderShell();return;}
- if(act==='import'&&isAdmin()){state.modal={type:'import'};renderShell();return;}
+ if(act==='import'&&canEditInventory()){requireInventoryReady();state.importPreview=null;state.modal={type:'import'};renderShell();return;}
  if(act==='report'){report(el.dataset.report);return;}
  if(act==='refresh'){await reload();toast('Dados atualizados.','success');return;}
  if(act==='sync'){if(demo)toast('Demonstração local: nenhum envio ao servidor.');else if(!navigator.onLine)toast('Sem internet. Tente novamente após reconectar.','error');else await flushQueue();return;}
@@ -435,7 +582,7 @@ async function handleAction(el,event){const act=el.dataset.action;
  if(act==='demo-login'){await startDemo(el.dataset.role);return;}
  if(act==='auth-view'){state.authEmail=document.getElementById('f-email')?.value.trim()||state.authEmail;state.authView=el.dataset.view;state.authLoginFailed=false;authPage();return;}
  if(act==='auth-retry'){state.authLoginFailed=false;authPage();document.getElementById('f-password')?.focus();return;}
- if(act==='logout'){if(configured)await cloud.signout();state.user=null;state.profile=null;state.role=null;state.data={timeEntries:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};state.queue=[];state.selectedTicketIds.clear();state.reviewPromptShown.clear();state.seenPendingUsers.clear();state.pendingUsersInitialized=false;state.modal=null;state.authView='signup';state.authEmail='';state.authLoginFailed=false;state.lastNotified.clear();authPage();return;}
+ if(act==='logout'){if(configured)await cloud.signout();state.user=null;state.profile=null;state.role=null;state.data={timeEntries:[],assetEvents:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};state.queue=[];state.selectedTicketIds.clear();state.selectedAssetIds.clear();state.importPreview=null;state.reviewPromptShown.clear();state.seenPendingUsers.clear();state.pendingUsersInitialized=false;state.modal=null;state.authView='signup';state.authEmail='';state.authLoginFailed=false;state.lastNotified.clear();authPage();return;}
 }
 function isLoginCredentialFailure(error){return /invalid login credentials|invalid credentials|email not confirmed|invalid grant|invalid_grant/i.test(String(error?.message||''));}
 async function handleSubmit(form){const fd=formData(form);
@@ -482,16 +629,43 @@ async function handleSubmit(form){const fd=formData(form);
  if(form.id==='form-forgot'){await cloud.recover(String(fd.get('email')).trim());toast('Se o e-mail estiver cadastrado, você receberá um link de recuperação.','success');state.authView='login';authPage();return;}
  if(form.id==='form-reset'){if(fd.get('password')!==fd.get('confirm'))throw new Error('As senhas não conferem.');await cloud.changePassword(String(fd.get('password')));await cloud.signout();state.authView='login';authPage();toast('Senha alterada. Entre com sua nova senha.','success');return;}
  if(form.id==='form-ticket'){await submitTicket(fd);return;}
- if(form.id==='form-asset'&&isAdmin()){
-  if(!navigator.onLine&&!demo)throw new Error('Para editar o inventário, conecte-se à internet.');
-  const id=form.dataset.id||makeId(),tag=String(fd.get('tag')||'').trim().toUpperCase();
-  if(!/^GOAT-TI-[A-Z]+-\d{3,}$/.test(tag))throw new Error('Use tags no padrão GOAT-TI-PC-001.');
-  if(state.data.assets.some(a=>a.tag===tag&&a.id!==id))throw new Error('Essa tag de patrimônio já está em uso.');
-  const fields=['tag','category','brand','model','serial','owner','sector','location','status','condition','imei','line','notes'];const asset={id};for(const key of fields)asset[key]=key==='tag'?tag:String(fd.get(key)||'');asset.quantity=Number(fd.get('quantity'))||1;
-  if(form.dataset.id)await patchRecord('assets',id,asset);else await createRecord('assets',asset);
-  toast('Patrimônio salvo com sucesso.','success');state.modal=null;await reload();return;
+ if(form.id==='form-asset'){
+  if(!canEditInventory())throw new Error('Você não pode cadastrar ou editar patrimônios.');
+  requireInventoryReady();
+  if(!demo&&!navigator.onLine)throw new Error('Conecte-se à internet para alterar o inventário.');
+  const existing=state.data.assets.find(a=>a.id===form.dataset.id);
+  if(form.dataset.id&&!existing)throw new Error('Patrimônio não encontrado.');
+  const serial=String(fd.get('serial')||'').trim();
+  if(serial&&state.data.assets.some(a=>a.id!==existing?.id&&String(a.serial||'').trim().toLowerCase()===serial.toLowerCase()))throw new Error('Número de série já cadastrado.');
+  const record={id:existing?.id||makeId(),quantity:existing?.quantity||1};
+  for(const key of ['category','brand','model','serial','owner','sector','location','status','condition','imei','line','notes'])record[key]=String(fd.get(key)||'').trim();
+  for(const key of ['acquired_on','warranty_until','last_checked_on','last_assigned_on'])record[key]=String(fd.get(key)||'')||null;
+  if(demo&&!existing)record.tag=getNextDemoAssetTag(state.data.assets);
+  if(existing)await patchRecord('assets',record.id,record);else await createRecord('assets',record);
+  await reload();
+  state.modal={type:'asset-detail',id:record.id};renderShell();
+  toast(existing?'Patrimônio atualizado.':'Patrimônio cadastrado com etiqueta GL.','success');return;
  }
- if(form.id==='form-movement'&&isAdmin()){
+ if(form.id==='form-labels'){
+  if(!canEditInventory())throw new Error('Sem permissão para imprimir etiquetas.');
+  requireInventoryReady();
+  const assets=[...new Set(state.modal?.type==='labels'?state.modal.ids:[])].map(id=>state.data.assets.find(a=>a.id===id)).filter(Boolean);
+  const summary=downloadAssetLabels(assets,String(fd.get('label_size')||'60x30'));
+  state.modal=null;renderShell();toast(summary.labels+' etiqueta(s) exportada(s) em '+summary.pages+' página(s).','success');return;
+ }
+ if(form.id==='form-ticket-asset'){
+  if(!canEditInventory())throw new Error('Sem permissão para associar patrimônios.');
+  requireInventoryReady();
+  const ticket=getTicket(form.dataset.id),id=String(fd.get('asset_id')||'')||null;
+  if(!ticket)throw new Error('Chamado não encontrado.');
+  if(id&&!state.data.assets.some(a=>a.id===id&&a.status!=='Baixado'))throw new Error('Patrimônio não encontrado ou baixado.');
+  if(demo){ticket.asset_id=id;await persist();}
+  else await cloud.linkTicketAsset(ticket.id,id);
+  await reload();state.modal={type:'ticket',id:ticket.id};renderShell();
+  toast('Patrimônio vinculado ao chamado.','success');return;
+ }
+ if(form.id==='form-movement'&&canEditInventory()){
+  requireInventoryReady();
   if(!navigator.onLine&&!demo)throw new Error('Conecte-se à internet para registrar movimentações.');
   const asset=state.data.assets.find(a=>a.id===fd.get('asset_id'));if(!asset)throw new Error('Selecione um patrimônio válido.');
   const rec={id:makeId(),asset_id:asset.id};for(const key of ['movement_date','from_sector','to_sector','from_owner','to_owner','new_location','notes'])rec[key]=String(fd.get(key)||'');
@@ -500,7 +674,8 @@ async function handleSubmit(form){const fd=formData(form);
   if(demo){Object.assign(asset,{sector:rec.to_sector||asset.sector,owner:rec.to_owner||asset.owner,location:rec.new_location||asset.location});await persist();}
   state.modal=null;await reload();toast('Movimentação registrada.','success');return;
  }
- if(form.id==='form-maintenance'&&isAdmin()){
+ if(form.id==='form-maintenance'&&canEditInventory()){
+  requireInventoryReady();
   if(!navigator.onLine&&!demo)throw new Error('Conecte-se à internet para registrar manutenções.');
   const rec={id:makeId(),asset_id:String(fd.get('asset_id'))};for(const key of ['opened_at','title','technician','status','action_taken'])rec[key]=String(fd.get(key)||'');
   await createRecord('maintenance',rec);state.modal=null;await reload();toast('Manutenção registrada.','success');return;
@@ -546,7 +721,7 @@ async function handleSubmit(form){const fd=formData(form);
  if(form.id==='form-user'&&isAdmin()){
   if(!navigator.onLine&&!demo)throw new Error('Conecte-se à internet para alterar permissões.');
   if(form.dataset.id===userId())throw new Error('Você não pode alterar seu próprio perfil nesta tela.');
-  await patchRecord('profiles',form.dataset.id,{role:fd.get('role'),status:fd.get('status')});state.modal=null;await reload();toast('Permissões atualizadas.','success');return;
+  const current=state.data.profiles.find(p=>p.id===form.dataset.id),changes={role:fd.get('role'),status:fd.get('status')};if(current&&Object.prototype.hasOwnProperty.call(current,'can_manage_inventory'))changes.can_manage_inventory=fd.get('can_manage_inventory')==='on';await patchRecord('profiles',form.dataset.id,changes);state.modal=null;await reload();toast('Permissões atualizadas.','success');return;
  }
  if(form.id==='form-guide'&&isAdmin()){
   if(!navigator.onLine&&!demo)throw new Error('Conecte-se à internet para publicar tutoriais.');
@@ -554,13 +729,13 @@ async function handleSubmit(form){const fd=formData(form);
   if(!steps.length)throw new Error('Inclua pelo menos um passo.');
   await createRecord('guides',{id:makeId(),title:String(fd.get('title')).trim(),category:String(fd.get('category')).trim(),summary:String(fd.get('summary')).trim(),steps,active:true});state.modal=null;await reload();toast('Tutorial publicado.','success');return;
  }
- if(form.id==='form-import'&&isAdmin()){if(!navigator.onLine&&!demo)throw new Error('Conecte-se à internet para importar o inventário.');await importData(form);return;}
+ if(form.id==='form-import'&&canEditInventory()){if(!navigator.onLine&&!demo)throw new Error('Conecte-se à internet para importar o inventário.');await importData(form);return;}
 }
 app.addEventListener('click',async(e)=>{const el=e.target.closest('[data-action]');if(!el)return;
  try{await handleAction(el,e);}catch(err){console.error(err);toast(err.message||'Erro ao executar a ação.','error');}
 });
-app.addEventListener('keydown',async(e)=>{const row=e.target.closest('.ticket-clickable[data-action="ticket"]');if(e.target!==row||!['Enter',' '].includes(e.key))return;e.preventDefault();try{await handleAction(row,e);}catch(err){console.error(err);toast(err.message||'Erro ao abrir chamado.','error');}});
+app.addEventListener('keydown',async(e)=>{const row=e.target.closest('.ticket-clickable[data-action="ticket"],.asset-clickable[data-action="asset-detail"]');if(e.target!==row||!['Enter',' '].includes(e.key))return;e.preventDefault();try{await handleAction(row,e);}catch(err){console.error(err);toast(err.message||'Erro ao abrir chamado.','error');}});
 app.addEventListener('submit',async(e)=>{const form=e.target.closest('form');if(!form)return;e.preventDefault();const submit=form.querySelector('[type="submit"]');if(submit){submit.disabled=true;submit.dataset.old=submit.textContent;submit.textContent='Processando...';}try{await handleSubmit(form);}catch(err){console.error(err);toast(err.message||'Ocorreu um problema.','error');}finally{if(submit&&submit.isConnected){submit.disabled=false;submit.textContent=submit.dataset.old||'Enviar';}}});
-app.addEventListener('change',(e)=>{if(e.target.id==='filter-status'){state.filter=e.target.value;renderShell();}if(e.target.id==='report-period'){state.period=e.target.value;renderShell();}if(e.target.name==='from'||e.target.id==='f-from'){state.rangeFrom=e.target.value;}if(e.target.name==='to'||e.target.id==='f-to'){state.rangeTo=e.target.value;}});
+app.addEventListener('change',(e)=>{if(e.target.id==='filter-status'){state.filter=e.target.value;renderShell();}if(e.target.dataset.assetFilter){state.assetFilters[e.target.dataset.assetFilter]=e.target.value;renderShell();}if(e.target.id==='report-period'){state.period=e.target.value;renderShell();}if(e.target.name==='from'||e.target.id==='f-from'){state.rangeFrom=e.target.value;}if(e.target.name==='to'||e.target.id==='f-to'){state.rangeTo=e.target.value;}});
 app.addEventListener('input',(e)=>{if(e.target.id==='f-email')state.authEmail=e.target.value;if(e.target.id==='page-search'){const pos=e.target.selectionStart;state.search=e.target.value;renderShell();const search=document.getElementById('page-search');if(search){search.focus();try{search.setSelectionRange(pos,pos);}catch{}}}});
 init().catch(err=>{console.error(err);app.innerHTML='<div class="boot"><h2>Não foi possível iniciar o aplicativo.</h2><p>Atualize a página ou tente novamente.</p></div>';});

@@ -13,7 +13,7 @@
 - Diário de atividades, avaliações e relatórios PDF.
 - Modo demonstração local, PWA, tema claro/escuro e recursos de uso offline.
 
-**Versão:** 1.3.0 — suporte à criação de conta e recuperação de senha após falha de credenciais no login, preservando o e-mail.
+**Versão:** 1.4.0 — inventário GL, QR Code e gestão de ativos de TI.
 
 > **Estado do projeto:** MVP em desenvolvimento. Ainda exige testes integrados de segurança (RLS), fluxos com múltiplos usuários e sincronização offline antes de uso em produção. Notificações com navegador fechado ainda não foram implementadas.
 
@@ -105,3 +105,15 @@ O administrador vê o contador de pendências em **Usuários**, no topo do aplic
 A primeira visita abre **Criar conta**; quem já tem cadastro usa **Fazer login**. A migração SQL habilita novos perfis como **funcionario/ativo** sem aprovação. Administradores continuam podendo bloquear e reativar. Se o Supabase exigir confirmação de e-mail, o funcionário precisará confirmá-lo antes de entrar. Veja [o guia de atualização](docs/CADASTRO_AUTOMATICO_E_AVALIACAO.md).
 
 O administrador pode excluir permanentemente contas **sem histórico** com confirmação EXCLUIR; contas com chamados, mensagens, avaliações ou tempo de atendimento associados devem ser bloqueadas, preservando histórico. Com o app aberto, a avaliação aparece automaticamente após resolução em verificações a cada ~6 segundos; não exige reabrir o chamado.
+
+### Gestão patrimonial de TI / etiquetas GL (v1.4.0)
+
+O inventário usa UUIDs estáveis e tags GL geradas no PostgreSQL. Equipamentos antigos recebem novo GL e preservam o código anterior em `legacy_tag`. Permite consulta de ficha com QR autenticado (`/?patrimonio=GL-000001`), impressão de etiquetas individuais ou em lote via PDF A4, histórico de movimentações/manutenções, filtros, importação CSV com prévia e associação com chamados visíveis.
+
+**Aplique a migração SQL** `supabase/migrations/20261116_inventory_gl_itam.sql` após backup e homologação. Não execute novamente o esquema inteiro no banco existente. O frontend detecta a ausência da migração e impede cadastros/etiquetas até ela ser aplicada. **Não alteramos o banco de produção automaticamente.**
+
+Gestão tem acesso de leitura. Administradores podem cadastrar e editar; funcionários designados para TI recebem o direito `can_manage_inventory` por decisão de administrador na tela Usuários (o campo Setor TI, preenchido pelo próprio funcionário, não concede permissão). As políticas RLS no banco aplicam as mesmas regras. Funcionários comuns, pendentes e bloqueados não conseguem consultar o inventário pela API nem pelo QR.
+
+**Nota sobre lotes:** equipamentos novos possuem uma etiqueta GL por unidade; na importação, linhas com Quantidade 2 ou mais são expandidas em etiquetas individuais, exceto itens com número de série (que exigem quantidade 1). Lotes antigos são preservados com suas quantidades para revisão física. QR e PDF são gerados localmente, sem depender de serviços de QR externos. Biblioteca QRCode.js vendorizada sob licença MIT em `src/vendor/`.
+
+Detalhes e checklist em [docs/INVENTARIO_GL_ITAM.md](docs/INVENTARIO_GL_ITAM.md).

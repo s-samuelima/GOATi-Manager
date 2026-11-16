@@ -20,3 +20,15 @@
 - [ ] Licenças de serviços, autenticação e SMTP revisadas
 - [ ] Testes de desempenho com volume de atendimentos aproximado ao da organização
 - [ ] App publicado somente depois da autorização formal da empresa
+
+## ITAM / Patrimonio GL (v1.4.0)
+- [ ] Aplicar a migracao incremental em homologacao (com backup anterior) e comparar totais / FKs
+- [ ] Testar dois cadastros simultaneos e ausencia de duplicidade de GL
+- [ ] Testar que baixa nao remove registro nem reutiliza GL
+- [ ] Conferir RLS para TI autorizado, TI sem direito, gestao, funcionario, pendente e bloqueado
+- [ ] Escanear QR no celular com login e confirmar redirecionamento ao patrimonio
+- [ ] Escanear QR com usuario sem permissao e validar bloqueio na API
+- [ ] Imprimir PDF em 100% em tres tamanhos, testar leitura do QR
+- [ ] Importar CSV com dados invalidos e confirmar atomicidade
+- [ ] Associar chamado a equipamento e conferir historico visivel por perfil
+- [ ] Conferir registros legados e tags antigas apos migracao

@@ -156,3 +156,29 @@
 .user-pending-row{background:rgba(234,86,104,.055)}
 .toast-action{display:block;margin-top:9px;padding:7px 12px;background:#fff;color:#1f2c32;border:none;border-radius:8px;font-weight:800;font-size:12px;cursor:pointer}
 @media(max-width:620px){.pending-users-banner{flex-wrap:wrap}.pending-users-banner .btn{width:100%}}
+
+/* Inventario GL: fichas, filtros, QR Code, etiquetas */
+.asset-filters{align-items:flex-end;gap:10px;flex-wrap:wrap}
+.asset-filters .search-wrap{flex:1 1 290px}
+.asset-filter{display:flex;flex-direction:column;gap:4px;min-width:125px;font-size:11px;font-weight:700;color:var(--muted)}
+.asset-filter select{min-width:125px}
+.asset-clickable{cursor:pointer}
+.asset-clickable:hover td{background:rgba(206,67,83,.055)}
+.asset-clickable:focus{outline:2px solid var(--accent);outline-offset:-2px}
+.asset-tag-display{display:flex;flex-direction:column;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px}
+.asset-tag-display strong{font-size:20px;letter-spacing:1px}
+.asset-tag-display small{color:var(--muted);font-size:11px}
+.asset-detail-top{display:grid;grid-template-columns:205px minmax(0,1fr);gap:20px;align-items:start}
+.asset-detail-qr{display:flex;flex-direction:column;align-items:center;gap:10px;padding:13px;border:1px solid var(--border);border-radius:12px}
+.asset-detail-qr strong{font-size:18px;letter-spacing:1px}
+.asset-qr{display:block;max-width:100%;height:auto;background:#fff;border-radius:5px}
+.asset-history-entry{padding:11px 13px;border:1px solid var(--border);border-radius:10px}
+.asset-history-entry strong{font-size:12px}
+.asset-history-entry small{display:block;color:var(--muted);margin-top:3px}
+.asset-related-ticket{width:100%;white-space:normal;text-align:left;justify-content:flex-start}
+.asset-permission{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--border);border-radius:10px;font-size:12px}
+.asset-label-preview{display:flex;align-items:center;gap:24px;padding:18px;border:1px dashed var(--border);border-radius:12px}
+.asset-label-preview strong{font-size:20px;letter-spacing:.5px}
+.asset-label-preview p{margin-top:6px;font-size:12px}
+.asset-label-preview small{font-size:11px;color:var(--muted)}
+@media(max-width:720px){.asset-detail-top{grid-template-columns:1fr}.asset-label-preview{flex-wrap:wrap}.asset-filters .asset-filter{flex:1 1 145px}}

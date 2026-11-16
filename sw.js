@@ -1,5 +1,5 @@
-const VERSION='goati-v1.3.3';
-const APP_SHELL=['/','/index.html','/config.js','/manifest.webmanifest','/assets/goati-mark.png','/assets/goati-192.png','/assets/goati-512.png','/assets/goati-mascot.png','/src/styles.css','/src/main.js','/src/storage.js','/src/api.js','/src/reports.js','/src/seed.js'];
+const VERSION='goati-v1.4.0';
+const APP_SHELL=['/','/index.html','/config.js','/manifest.webmanifest','/assets/goati-mark.png','/assets/goati-192.png','/assets/goati-512.png','/assets/goati-mascot.png','/src/styles.css','/src/main.js','/src/storage.js','/src/api.js','/src/reports.js','/src/seed.js','/src/inventory.js','/src/vendor/qrcode.min.js'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(VERSION).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==VERSION).map(k=>caches.delete(k)))),self.clients.claim()])));
 self.addEventListener('fetch',event=>{

@@ -1,3 +1,13 @@
+## v1.4.0 — Inventário patrimonial GL / ITAM
+
+- Número GL único e permanente gerado no PostgreSQL, sem reutilização após baixa.
+- Preservação de etiquetas anteriores em legacy_tag com manutenção dos UUIDs, históricos e FKs.
+- Gestão em leitura, equipe TI autorizada em escrita e administradores em controle completo; RLS no servidor.
+- Etiquetas PDF A4 individuais/em lote com QR Code local que abre ficha de patrimônio autenticada, após conferir permissões.
+- Ficha detalhada com movimentações, manutenções, auditoria e chamados visíveis associados.
+- Importação CSV com conferência, erros por linha e gravação atômica em lote, gerando GL para cada equipamento.
+- Sem alteração automática nos dados reais: migração SQL incremental requer execução manual depois de backup.
+
 ## v1.3.3 — Cadastro direto, exclusão segura e avaliação após resolução
 
 - Tela de cadastro como entrada padrão, com link de login para contas existentes.
