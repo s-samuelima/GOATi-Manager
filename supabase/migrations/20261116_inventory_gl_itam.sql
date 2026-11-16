@@ -80,7 +80,7 @@ grant execute on function private.can_edit_inventory() to authenticated;
 
 -- Audita explicitamente concessoes e revogacoes de permissao TI.
 create or replace function private.audit_profile_access() returns trigger
-language plpgsql security definer set search_path='' as $
+language plpgsql security definer set search_path='' as $$
 begin
  if old.role is distinct from new.role or old.status is distinct from new.status
     or old.can_manage_inventory is distinct from new.can_manage_inventory then
@@ -91,7 +91,7 @@ begin
       'anterior_inventario',old.can_manage_inventory,'novo_inventario',new.can_manage_inventory));
  end if;
  return new;
-end;$;
+end;$$;
 revoke execute on function private.audit_profile_access() from public,anon,authenticated;
 
 
