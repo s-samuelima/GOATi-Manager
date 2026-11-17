@@ -1,7 +1,7 @@
 import {storage} from './storage.js';
 import {cloud,configured} from './api.js';
 import {downloadPDF,downloadCSV,parseCSV} from './reports.js';
-import {LABEL_SIZES,qrTarget,qrSvg,downloadAssetLabels,getNextDemoAssetTag,prepareAssetImport} from './inventory.js';
+import {LABEL_SIZES,qrTarget,qrSvg,downloadAssetLabels,getNextDemoAssetTag,prepareAssetImport,assetsForGlRange} from './inventory.js';
 import {seed,normalizeData,resolveHelpArticles,guides,cats,sectors,assetCats,statusNames,urgencyNames} from './seed.js';
 
 const app=document.getElementById('app');
@@ -113,8 +113,8 @@ function inventoryPage(){
   <label class="asset-filter">Responsável<select class="select" data-asset-filter="owner">${options(owners,filters.owner)}</select></label>
   <label class="asset-filter">Situação<select class="select" data-asset-filter="status">${options(statuses,filters.status)}</select></label>
   <button class="btn outline" data-action="report" data-report="inventario">${icon('download',15)} Relatório PDF</button>
-  ${canEditInventory()?`<button class="btn outline" data-action="labels-selected" ${!state.selectedAssetIds.size?'disabled':''}>Etiquetas selecionadas (${state.selectedAssetIds.size})</button><button class="btn outline" data-action="labels-visible" ${!found.length?'disabled':''}>Etiquetas exibidas (${found.length})</button>`:''}</div>
-  <div class="panel table-wrap"><table class="data-table"><thead><tr>${canEditInventory()?'<th>Seleção</th>':''}<th>Patrimônio</th><th>Equipamento</th><th>Responsável</th><th>Setor</th><th>Localização</th><th>Unid.</th><th>Status</th></tr></thead><tbody>
+  ${canEditInventory()?`<button class="btn outline" data-action="labels-selected" ${!state.selectedAssetIds.size?'disabled':''}>Etiquetas selecionadas (${state.selectedAssetIds.size})</button><button class="btn outline" data-action="labels-visible" ${!found.length?'disabled':''}>Etiquetas exibidas (${found.length})</button><button class="btn outline" data-action="labels-range">Por número GL</button><button class="btn outline" data-action="clear-selected-assets" ${!state.selectedAssetIds.size?'disabled':''}>Limpar seleção</button>`:''}</div>
+  <div class="panel table-wrap"><table class="data-table"><thead><tr>${canEditInventory()?`<th><label class="asset-select-all"><input type="checkbox" data-action="select-all-assets" aria-label="Selecionar todos os patrimônios exibidos" ${found.length&&found.every(a=>state.selectedAssetIds.has(a.id))?'checked':''} ${!found.length?'disabled':''}> Todos</label></th>`:''}<th>Patrimônio</th><th>Equipamento</th><th>Responsável</th><th>Setor</th><th>Localização</th><th>Unid.</th><th>Status</th></tr></thead><tbody>
   ${found.map(a=>`<tr class="asset-clickable" tabindex="0" data-action="asset-detail" data-id="${esc(a.id)}" aria-label="Abrir patrimônio ${esc(a.tag)}">
   ${canEditInventory()?`<td><input type="checkbox" data-action="select-asset" data-id="${esc(a.id)}" aria-label="Selecionar patrimônio ${esc(a.tag)}" ${state.selectedAssetIds.has(a.id)?'checked':''}></td>`:''}
   <td><strong>${esc(a.tag)}</strong>${a.legacy_tag?`<small class="cell-secondary">Antiga: ${esc(a.legacy_tag)}</small>`:''}</td>
@@ -293,6 +293,17 @@ function renderModal(){const m=state.modal;let title='',description='',body='',w
   <div class="separator"></div><h3>Auditoria patrimonial</h3>
   <div class="stack mt-2">${events.map(ev=>`<div class="asset-history-entry"><strong>${esc(ev.event_type)}</strong><small>${dateLong(ev.created_at)} · ${esc(state.data.profiles.find(p=>p.id===ev.actor_id)?.full_name||'Equipe autorizada')}</small></div>`).join('')||'<p class="muted text-xs">Nenhum evento adicional registrado nesta versão.</p>'}</div>`;
  }
+
+ if(m.type==='labels-range'){
+  if(!canEditInventory())return '';
+  title='Etiquetas por número GL';
+  description='Escolha os códigos exatos que deseja imprimir. Nenhum patrimônio será alterado.';
+  body='<form id="form-labels-range" class="stack"><div class="form-grid">'
+   +field('gl_from','Do patrimônio GL','text','','required placeholder="Ex.: 21 ou GL-000021"')
+   +field('gl_to','Até o patrimônio GL (opcional)','text','','placeholder="Ex.: 30 ou GL-000030"')
+   +'</div><p class="muted text-xs">Para imprimir apenas uma etiqueta, deixe o segundo campo vazio. O intervalo inclui somente patrimônios já cadastrados; confira a prévia antes de exportar o PDF.</p>'
+   +'<div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Conferir etiquetas</button></div></form>';
+ }
  if(m.type==='labels'){
   if(!canEditInventory())return '';
   const assets=[...new Set(m.ids||[])].map(id=>state.data.assets.find(a=>a.id===id)).filter(Boolean);if(!assets.length)return '';
@@ -301,6 +312,8 @@ function renderModal(){const m=state.modal;let title='',description='',body='',w
   const preview=(()=>{try{return qrSvg(assets[0].tag,142);}catch{return '<p>QR indisponível</p>';}})();
   body=`<form id="form-labels" class="stack"><div class="asset-label-preview"><div>${preview}</div><div><strong>${esc(assets[0].tag)}</strong><p>GOATi Manager · TI</p><small>${esc(assets[0].category)} · ${esc(assets[0].brand)} ${esc(assets[0].model)}</small></div></div>${assets.length>1?`<p class="muted text-xs">Este é um exemplo. O PDF terá todas as ${assets.length} etiquetas selecionadas.</p>`:''}
   <label class="field">Tamanho da etiqueta<select class="select" name="label_size">${LABEL_SIZES.map(x=>`<option value="${esc(x.key)}" ${x.key==='60x30'?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label>
+  ${m.rangeDescription?`<p class="muted text-xs">Intervalo solicitado: <strong>${esc(m.rangeDescription)}</strong>. ${m.rangeMissing?`${m.rangeMissing} número(s) desse intervalo não estão cadastrados e serão ignorados.`:'Todos os números do intervalo estão cadastrados.'}</p>`:''}
+  <p class="muted text-xs">Patrimônios incluídos: ${esc(assets.map(a=>a.tag).slice(0,25).join(', '))}${assets.length>25?'…':''}</p>
   <p class="muted text-xs">O PDF será gerado em folha A4. Imprima em escala real (100%) para manter as dimensões. A reimpressão não altera o patrimônio.</p>
   <div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">${icon('download',16)} Exportar etiquetas PDF</button></div></form>`;
  }
@@ -523,6 +536,21 @@ async function handleAction(el,event){const act=el.dataset.action;
   if(el.checked)state.selectedAssetIds.add(el.dataset.id);else state.selectedAssetIds.delete(el.dataset.id);
   renderShell();return;
  }
+
+ if(act==='select-all-assets'&&canEditInventory()){
+  const ids=[...document.querySelectorAll('tr.asset-clickable[data-id]')].map(tr=>tr.dataset.id);
+  if(!ids.length)return;
+  const allSelected=ids.every(id=>state.selectedAssetIds.has(id));
+  ids.forEach(id=>{if(allSelected)state.selectedAssetIds.delete(id);else state.selectedAssetIds.add(id);});
+  renderShell();return;
+ }
+ if(act==='clear-selected-assets'&&canEditInventory()){
+  state.selectedAssetIds.clear();renderShell();return;
+ }
+ if(act==='labels-range'&&canEditInventory()){
+  requireInventoryReady();
+  state.modal={type:'labels-range'};renderShell();return;
+ }
  if(act==='labels-visible'&&canEditInventory()){
   requireInventoryReady();
   const ids=[...document.querySelectorAll('tr.asset-clickable[data-id]')].map(tr=>tr.dataset.id);
@@ -645,6 +673,16 @@ async function handleSubmit(form){const fd=formData(form);
   await reload();
   state.modal={type:'asset-detail',id:record.id};renderShell();
   toast(existing?'Patrimônio atualizado.':'Patrimônio cadastrado com etiqueta GL.','success');return;
+ }
+
+ if(form.id==='form-labels-range'){
+  if(!canEditInventory())throw new Error('Sem permissão para imprimir etiquetas.');
+  requireInventoryReady();
+  const selection=assetsForGlRange(state.data.assets,fd.get('gl_from'),fd.get('gl_to'));
+  state.modal={type:'labels',ids:selection.assets.map(asset=>asset.id),
+   rangeDescription:selection.from===selection.to?selection.from:selection.from+' até '+selection.to,
+   rangeMissing:selection.missing};
+  renderShell();return;
  }
  if(form.id==='form-labels'){
   if(!canEditInventory())throw new Error('Sem permissão para imprimir etiquetas.');
