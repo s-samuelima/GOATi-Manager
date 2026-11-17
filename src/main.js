@@ -1,7 +1,7 @@
 import {storage} from './storage.js';
 import {cloud,configured} from './api.js';
 import {downloadPDF,downloadCSV,parseCSV} from './reports.js';
-import {LABEL_SIZES,qrTarget,qrSvg,downloadAssetLabels,getNextDemoAssetTag,prepareAssetImport,assetsForGlRange} from './inventory.js';
+import {LABEL_SIZES,qrTarget,qrSvg,downloadAssetLabels,getNextDemoAssetTag,prepareAssetImport,assetsForGlRange,ASSET_OWNER_NAME} from './inventory.js';
 import {seed,normalizeData,resolveHelpArticles,guides,cats,sectors,assetCats,statusNames,urgencyNames} from './seed.js';
 
 const app=document.getElementById('app');
@@ -310,7 +310,7 @@ function renderModal(){const m=state.modal;let title='',description='',body='',w
   title=assets.length===1?'Etiqueta patrimonial':'Etiquetas em lote';
   description=assets.length+' etiqueta(s) · impressão em papel A4';wide=true;
   const preview=(()=>{try{return qrSvg(assets[0].tag,142);}catch{return '<p>QR indisponível</p>';}})();
-  body=`<form id="form-labels" class="stack"><div class="asset-label-preview"><div>${preview}</div><div><strong>${esc(assets[0].tag)}</strong><p>GOATi Manager · TI</p><small>${esc(assets[0].category)} · ${esc(assets[0].brand)} ${esc(assets[0].model)}</small></div></div>${assets.length>1?`<p class="muted text-xs">Este é um exemplo. O PDF terá todas as ${assets.length} etiquetas selecionadas.</p>`:''}
+  body=`<form id="form-labels" class="stack"><div class="asset-label-preview"><div>${preview}</div><div><strong>${esc(assets[0].tag)}</strong><p>Proprietária: ${esc(ASSET_OWNER_NAME)}</p><small>${esc(assets[0].category)} · ${esc(assets[0].brand)} ${esc(assets[0].model)}</small></div></div>${assets.length>1?`<p class="muted text-xs">Este é um exemplo. O PDF terá todas as ${assets.length} etiquetas selecionadas.</p>`:''}
   <label class="field">Tamanho da etiqueta<select class="select" name="label_size">${LABEL_SIZES.map(x=>`<option value="${esc(x.key)}" ${x.key==='60x30'?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label>
   ${m.rangeDescription?`<p class="muted text-xs">Intervalo solicitado: <strong>${esc(m.rangeDescription)}</strong>. ${m.rangeMissing?`${m.rangeMissing} número(s) desse intervalo não estão cadastrados e serão ignorados.`:'Todos os números do intervalo estão cadastrados.'}</p>`:''}
   <p class="muted text-xs">Patrimônios incluídos: ${esc(assets.map(a=>a.tag).slice(0,25).join(', '))}${assets.length>25?'…':''}</p>

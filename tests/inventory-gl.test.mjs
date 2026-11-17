@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {getNextDemoAssetTag,prepareAssetImport,qrTarget,LABEL_SIZES,qrSvg,downloadAssetLabels,assetsForGlRange} from '../src/inventory.js';
+import {getNextDemoAssetTag,prepareAssetImport,qrTarget,LABEL_SIZES,qrSvg,downloadAssetLabels,assetsForGlRange,ASSET_OWNER_NAME} from '../src/inventory.js';
 const root=new URL('../',import.meta.url);
 const main=readFileSync(new URL('src/main.js',root),'utf8');
 const migration=readFileSync(new URL('supabase/migrations/20261116_inventory_gl_itam.sql',root),'utf8');
@@ -114,6 +114,12 @@ test('QR gera SVG sem imagem externa e PDF válido em uma página',async()=>{
   const contents=new Uint8Array(await generated.arrayBuffer());
   assert.equal(String.fromCharCode(...contents.slice(0,8)),'%PDF-1.4');
   assert.ok(contents.length>1000);
+  const pdfText=new TextDecoder('windows-1252').decode(contents);
+  assert.match(pdfText,/Global Soluções/);
+  assert.match(pdfText,/Financeiras/);
+  assert.doesNotMatch(pdfText,/GOATi Manager \| TI/);
+  assert.equal(ASSET_OWNER_NAME,'Global Soluções Financeiras');
+  assert.ok(main.includes('Proprietária: '+ '${esc(ASSET_OWNER_NAME)}'));
  }finally{
   globalThis.window=previous.window;globalThis.document=previous.document;
   URL.createObjectURL=previous.create;URL.revokeObjectURL=previous.revoke;

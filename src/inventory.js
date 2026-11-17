@@ -5,6 +5,9 @@ const safeAscii=s=>String(s??'').replace(/[\u2010-\u2015]/g,'-').replace(/[^\x20
 const pdfStr=s=>safeAscii(s).replaceAll('\\','\\\\').replaceAll('(','\\(').replaceAll(')','\\)');
 const bytes=s=>{const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i)&255;return u;};
 
+export const ASSET_OWNER_NAME='Global Soluções Financeiras';
+const ASSET_OWNER_LABEL_LINES=['Global Soluções','Financeiras'];
+
 export const LABEL_SIZES=[
  {key:'50x30',name:'50 × 30 mm',width:50,height:30},
  {key:'60x30',name:'60 × 30 mm (padrão)',width:60,height:30},
@@ -117,9 +120,10 @@ export function downloadAssetLabels(assets,format='60x30'){
    }
    const tx=qx+qrSide+mm(1.5),maxChars=Math.max(10,Math.floor((w-(tx-x)-mm(1))/3.9));
    txt(commands,asset.tag,tx,y+h-mm(8),Math.min(12,size.width===50?10:12),true);
-   txt(commands,'GOATi Manager | TI',tx,y+h-mm(12.3),6);
-   txt(commands,(asset.category||'Equipamento').slice(0,maxChars),tx,y+h-mm(17),7,true);
-   txt(commands,[asset.brand,asset.model].filter(Boolean).join(' ').slice(0,maxChars),tx,y+h-mm(21),6);
+   txt(commands,ASSET_OWNER_LABEL_LINES[0],tx,y+h-mm(12.3),6,true);
+   txt(commands,ASSET_OWNER_LABEL_LINES[1],tx,y+h-mm(15.6),6,true);
+   txt(commands,(asset.category||'Equipamento').slice(0,maxChars),tx,y+h-mm(19.7),7,true);
+   txt(commands,[asset.brand,asset.model].filter(Boolean).join(' ').slice(0,maxChars),tx,y+h-mm(23.4),6);
    if(Number(asset.quantity)>1)txt(commands,'LOTE: '+asset.quantity+' unidades',tx,y+mm(3),6);
   }
   pages.push(commands);
