@@ -182,3 +182,7 @@
 .asset-label-preview p{margin-top:6px;font-size:12px}
 .asset-label-preview small{font-size:11px;color:var(--muted)}
 @media(max-width:720px){.asset-detail-top{grid-template-columns:1fr}.asset-label-preview{flex-wrap:wrap}.asset-filters .asset-filter{flex:1 1 145px}}
+
+/* Seleção geral das etiquetas na tabela do inventário */
+.asset-select-all{display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap;text-transform:none;letter-spacing:0;font-size:11px}
+.asset-select-all input{margin:0}
