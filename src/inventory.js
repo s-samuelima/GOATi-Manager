@@ -10,6 +10,38 @@ export const LABEL_SIZES=[
  {key:'60x30',name:'60 × 30 mm (padrão)',width:60,height:30},
  {key:'70x40',name:'70 × 40 mm',width:70,height:40}
 ];
+
+/** Resolve códigos GL e mantém a ordem patrimonial na impressão. */
+export function assetsForGlRange(assets,begin,end=''){
+ const parse=(value)=>{
+  const raw=String(value??'').trim();
+  const match=/^(?:GL-)?([0-9]{1,6})$/i.exec(raw);
+  const number=match?Number(match[1]):0;
+  if(!number||number>999999)throw new Error('Informe um patrimônio válido, como 21 ou GL-000021.');
+  return number;
+ };
+ const from=parse(begin),to=parse(String(end??'').trim()?end:begin);
+ if(to<from)throw new Error('O patrimônio final não pode ser menor que o inicial.');
+ if(to-from>=5000)throw new Error('Escolha um intervalo de até 5.000 números GL.');
+ const picked=new Map();
+ for(const asset of assets||[]){
+  const match=/^GL-([0-9]{6})$/i.exec(String(asset.tag||''));
+  if(!match)continue;
+  const number=Number(match[1]);
+  if(number<from||number>to)continue;
+  if(picked.has(number))throw new Error('Patrimônio GL duplicado no inventário: GL-'+String(number).padStart(6,'0'));
+  picked.set(number,asset);
+ }
+ if(!picked.size)throw new Error('Nenhum patrimônio cadastrado nesse intervalo GL.');
+ const selected=[...picked.entries()].sort((a,b)=>a[0]-b[0]).map(([,asset])=>asset);
+ return {
+  assets:selected,
+  from:'GL-'+String(from).padStart(6,'0'),
+  to:'GL-'+String(to).padStart(6,'0'),
+  missing:to-from+1-selected.length
+ };
+}
+
 export function qrTarget(tag,origin=(typeof location!=='undefined'?location.origin:'http://localhost')){
  const url=new URL('/',origin);
  url.searchParams.set('patrimonio',String(tag));

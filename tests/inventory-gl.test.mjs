@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {getNextDemoAssetTag,prepareAssetImport,qrTarget,LABEL_SIZES,qrSvg,downloadAssetLabels} from '../src/inventory.js';
+import {getNextDemoAssetTag,prepareAssetImport,qrTarget,LABEL_SIZES,qrSvg,downloadAssetLabels,assetsForGlRange} from '../src/inventory.js';
 const root=new URL('../',import.meta.url);
 const main=readFileSync(new URL('src/main.js',root),'utf8');
 const migration=readFileSync(new URL('supabase/migrations/20261116_inventory_gl_itam.sql',root),'utf8');
@@ -118,4 +118,34 @@ test('QR gera SVG sem imagem externa e PDF válido em uma página',async()=>{
   globalThis.window=previous.window;globalThis.document=previous.document;
   URL.createObjectURL=previous.create;URL.revokeObjectURL=previous.revoke;
  }
+});
+
+test('Impressão por número GL aceita único número e intervalo em ordem crescente',()=>{
+ const rows=[{id:'three',tag:'GL-000003'},{id:'other',tag:'GOAT-OLD-001'},{id:'one',tag:'GL-000001'},{id:'two',tag:'GL-000002'}];
+ const single=assetsForGlRange(rows,'GL-000002');
+ assert.deepEqual(single.assets.map(x=>x.id),['two']);
+ assert.equal(single.missing,0);
+ const interval=assetsForGlRange(rows,'1','GL-000003');
+ assert.deepEqual(interval.assets.map(x=>x.id),['one','two','three']);
+ assert.equal(interval.from,'GL-000001');
+ assert.equal(interval.to,'GL-000003');
+});
+test('Intervalo não imprime patrimônio fora da faixa nem duplica etiquetas',()=>{
+ const rows=[{id:'a',tag:'GL-000020'},{id:'b',tag:'GL-000022'},{id:'c',tag:'GL-000019'}];
+ const selected=assetsForGlRange(rows,'20','22');
+ assert.deepEqual(selected.assets.map(x=>x.id),['a','b']);
+ assert.equal(selected.missing,1);
+ assert.throws(()=>assetsForGlRange(rows,'22','20'),/menor/);
+ assert.throws(()=>assetsForGlRange(rows,'GL-xyz','22'),/válido/);
+ assert.throws(()=>assetsForGlRange(rows,'25','26'),/Nenhum/);
+ assert.throws(()=>assetsForGlRange(rows,'1','5001'),/5.000/);
+ assert.throws(()=>assetsForGlRange([{id:'a',tag:'GL-000020'},{id:'b',tag:'GL-000020'}],'20'),/duplicado/);
+});
+test('Inventário fornece seleção geral e impressão por intervalo',()=>{
+ assert.match(main,/data-action="select-all-assets"/);
+ assert.match(main,/data-action="clear-selected-assets"/);
+ assert.match(main,/data-action="labels-range"/);
+ assert.match(main,/form-labels-range/);
+ assert.ok(main.includes('assetsForGlRange(state.data.assets'));
+ assert.match(main,/rangeMissing/);
 });
