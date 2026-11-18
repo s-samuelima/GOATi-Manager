@@ -19,9 +19,9 @@ const textarea=(name,label,value='',min=0)=>`<div class="field"><label for="f-${
 const chip=(v)=>`<span class="chip ${esc(v)}">${esc(statusNames[v]||urgencyNames[v]||v||'—')}</span>`;
 const cIcon={grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',ticket:'<path d="M4 7a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-3a2 2 0 0 0 0-4V7Z"/><path d="M12 6v2m0 3v2m0 3v2"/>',package:'<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="M3 8v9l9 5 9-5V8M12 13v9"/>',activity:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/>',book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14ZM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',star:'<path d="m12 3 2.7 5.8 6.3.9-4.5 4.5 1.1 6.3L12 17.5l-5.6 3 1.1-6.3L3 9.7l6.3-.9L12 3Z"/>',users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',settings:'<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.75l.06.06-2.04 2.04-.06-.06a1.6 1.6 0 0 0-1.75-.32l-.09.04a1.6 1.6 0 0 0-.99 1.46V21H9.15v-.08a1.6 1.6 0 0 0-1-1.46l-.08-.04a1.6 1.6 0 0 0-1.75.32l-.06.06-2.04-2.04.06-.06A1.6 1.6 0 0 0 4.6 15l-.04-.09a1.6 1.6 0 0 0-1.46-.99H3V10.1h.1a1.6 1.6 0 0 0 1.46-.99L4.6 9a1.6 1.6 0 0 0-.32-1.75l-.06-.06 2.04-2.04.06.06a1.6 1.6 0 0 0 1.75.32l.09-.04a1.6 1.6 0 0 0 .99-1.46V4h5.7v.08a1.6 1.6 0 0 0 .99 1.46l.09.04a1.6 1.6 0 0 0 1.75-.32l.06-.06 2.04 2.04-.06.06A1.6 1.6 0 0 0 19.4 9l.04.09a1.6 1.6 0 0 0 1.46.99h.1v3.82h-.1a1.6 1.6 0 0 0-1.46.99L19.4 15Z"/>',bell:'<path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/>',moon:'<path d="M20 16.7A9 9 0 0 1 7.3 4 9 9 0 1 0 20 16.7Z"/>',plus:'<path d="M12 5v14M5 12h14"/>',search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',arrow:'<path d="M5 12h14m-6-6 6 6-6 6"/>',check:'<path d="m4 12 5 5L20 6"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',monitor:'<rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',wifi:'<path d="M2 8a15 15 0 0 1 20 0M5 12a11 11 0 0 1 14 0m-10 4a6 6 0 0 1 6 0M12 20h.01"/>',headphones:'<path d="M3 14v-3a9 9 0 0 1 18 0v3M5 13H3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3v-7H5Zm14 0h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3v-7h1Z"/>',printer:'<path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',gauge:'<path d="M5 18a9 9 0 1 1 14 0M12 13l4-4"/><path d="M4 20h16"/>',lock:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',close:'<path d="M18 6 6 18M6 6l12 12"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',download:'<path d="M12 3v13m-5-5 5 5 5-5M5 20h14"/>',upload:'<path d="M12 21V8m-5 5 5-5 5 5M5 4h14"/>',menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',refresh:'<path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"/>',cloud:'<path d="M20 16a4 4 0 0 0-4-4h-1a6 6 0 0 0-11 2 4 4 0 0 0 0 8h16a3 3 0 0 0 0-6Z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-9h.01"/>',shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',chevron:'<path d="m9 18 6-6-6-6"/>',mouse:'<rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 2v8"/>','mouse-pointer':'<path d="m4 3 7 18 2.5-7.5L21 11 4 3Z"/>','cloud-off':'<path d="M8 8a6 6 0 0 1 10 4 4 4 0 0 1 2 7H7a4 4 0 0 1-2-7M3 3l18 18"/>','lock-keyhole':'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2"/>'};
 const icon=(name,size=18)=>`<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${cIcon[name]||cIcon.info}</svg>`;
-const state={view:'dashboard',search:'',filter:'all',period:'mensal',rangeFrom:'',rangeTo:'',inventoryTab:'assets',assetFilters:{category:'all',sector:'all',owner:'all',status:'all'},selectedAssetIds:new Set(),assetDeepLink:new URLSearchParams(location.search).get('patrimonio')||'',importPreview:null,inventoryMigrationMissing:false,modal:null,guideId:null,tab:'todos',mobile:false,
+const state={view:'dashboard',search:'',filter:'all',period:'mensal',rangeFrom:'',rangeTo:'',inventoryTab:'assets',assetFilters:{category:'all',sector:'all',owner:'all',status:'all'},selectedAssetIds:new Set(),assetDeepLink:new URLSearchParams(location.search).get('patrimonio')||'',importPreview:null,inventoryMigrationMissing:false,stockMigrationMissing:false,modal:null,guideId:null,tab:'todos',mobile:false,
  authView:'signup',authEmail:'',authLoginFailed:false,selectedTicketIds:new Set(),reviewPromptShown:new Set(),timerMigrationMissing:false,recovery:false,theme:localStorage.getItem('goat-ti-theme')||'dark',role:null,user:null,profile:null,
- data:{timeEntries:[],assetEvents:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]},queue:[],noticePermission:typeof Notification!=='undefined'?Notification.permission:'indisponível',lastNotified:new Set(),seenPendingUsers:new Set(),pendingUsersInitialized:false,installPrompt:null,loading:false};
+ data:{timeEntries:[],assetEvents:[],stock_items:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]},queue:[],noticePermission:typeof Notification!=='undefined'?Notification.permission:'indisponível',lastNotified:new Set(),seenPendingUsers:new Set(),pendingUsersInitialized:false,installPrompt:null,loading:false};
 const demo=!configured;
 function isAdmin(){return state.role==='admin';}
 function isManager(){return state.role==='gestao';}
@@ -89,6 +89,17 @@ function searchbar(placeholder){return `<div class="search-wrap">${icon('search'
 function ticketsPage(){const queues=state.queue.filter(q=>q.owner===userId()).map(q=>({...q.payload,id:q.id,number:'Pendente',status:'pendente'}));const t=ticketsSorted([...ownTickets(),...queues]);const filtered=t.filter(x=>{const text=[x.title,x.description,x.requester_name,x.sector,x.number].join(' ').toLowerCase();return text.includes(state.search.toLowerCase())&&(state.filter==='all'||x.status===state.filter);});return `${pageHero('Atendimento',canManage()?'Central de chamados':'Meus chamados',canManage()?'Gerencie solicitações, prioridades e o histórico de suporte.':'Consulte suas solicitações e acompanhe o andamento de cada uma.',`<button class="btn primary" data-action="new-ticket">${icon('plus',16)} Novo chamado</button>`)}
  <div class="toolbar">${searchbar('Buscar por chamado, setor ou solicitante...')}<select class="select" id="filter-status" aria-label="Filtrar por status"><option value="all">Todos os status</option>${Object.entries({...statusNames,pendente:'Pendente de envio'}).map(([v,n])=>`<option value="${v}" ${state.filter===v?'selected':''}>${n}</option>`).join('')}</select><button class="btn outline" data-action="refresh">${icon('refresh',16)} Atualizar</button>${isAdmin()?`<button class="btn outline" data-action="select-visible-tickets" ${filtered.every(x=>state.selectedTicketIds.has(x.id))||!filtered.length?'disabled':''}>Marcar exibidos</button><button class="btn danger" data-action="delete-selected-tickets" ${!state.selectedTicketIds.size?'disabled':''}>Excluir selecionados (${state.selectedTicketIds.size})</button>`:''}</div>
  <div class="panel table-wrap"><table class="data-table"><thead><tr>${isAdmin()?'<th><span class="sr-only">Selecionar</span></th>':''}<th>Chamado</th>${canManage()?'<th>Solicitante</th>':''}<th>Categoria</th><th>Prioridade</th><th>Status</th>${canManage()?'<th>Tempo TI</th>':''}<th>Data</th></tr></thead><tbody>${filtered.map(t=>`<tr class="ticket-clickable" tabindex="0" data-action="ticket" data-id="${esc(t.id)}" aria-label="Abrir chamado ${esc(t.number||t.id)}: ${esc(t.title)}">${isAdmin()?`<td>${t.status!=='pendente'?`<input type="checkbox" aria-label="Selecionar chamado ${esc(t.number||t.id)}" data-action="select-ticket" data-id="${esc(t.id)}" ${state.selectedTicketIds.has(t.id)?'checked':''}>`:''}</td>`:''}<td><button class="linkrow" data-action="ticket" data-id="${esc(t.id)}" style="background:none;border:none;color:var(--text);text-align:left;cursor:pointer"><strong>#${esc(t.number||'...')} · ${esc(t.title)}</strong><div class="cell-secondary">${esc(t.description).slice(0,65)}${t.description?.length>65?'…':''}</div></button></td>${canManage()?`<td>${esc(t.requester_name)}</td>`:''}<td>${esc(t.category)}</td><td>${chip(t.urgency)}</td><td>${chip(t.status)}</td>${canManage()?`<td class="cell-secondary" data-live-ticket-time="${esc(t.id)}">${formatDuration(ticketTotalSeconds(t.id))}</td>`:''}<td class="cell-secondary">${dateShort(t.created_at)}</td></tr>`).join('')}</tbody></table>${filtered.length?'':empty('Nada encontrado.','Tente outro filtro ou abra um chamado.')}</div>`;}
+function stockItemsPage(){
+ if(state.stockMigrationMissing)return '<div class="offline-notice">A atualização do banco de dados é necessária para acessar o estoque por quantidade.</div>';
+ const editable=canEditInventory();
+ const query=state.search.trim().toLocaleLowerCase('pt-BR');
+ const items=state.data.stock_items.filter(item=>[item.name,item.location].join(' ').toLocaleLowerCase('pt-BR').includes(query))
+  .sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')||a.location.localeCompare(b.location,'pt-BR'));
+ return `<div class="toolbar">${searchbar('Buscar item ou localização...')}</div>
+ <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Item</th><th>Quantidade</th><th>Localização</th>${editable?'<th>Ações</th>':''}</tr></thead><tbody>
+ ${items.map(item=>`<tr><td><strong>${esc(item.name)}</strong></td><td>${shortNum(item.quantity)} un.</td><td>${esc(item.location||'—')}</td>${editable?`<td><button class="btn outline small" data-action="edit-stock-item" data-id="${esc(item.id)}" aria-label="Editar ${esc(item.name)}">Editar</button></td>`:''}</tr>`).join('')}
+ </tbody></table>${items.length?'':query?empty('Nenhum item encontrado.','Revise a pesquisa.'):empty('Nenhum item por quantidade.','Os itens cadastrados sem etiqueta aparecem aqui.')}</div>`;
+}
 function inventoryPage(){
  const filters=state.assetFilters;
  const cats=[...new Set(state.data.assets.map(a=>a.category).filter(Boolean))].sort();
@@ -103,10 +114,13 @@ function inventoryPage(){
  &&match(a.owner,filters.owner)&&match(a.status,filters.status));
  const options=(values,current)=>'<option value="all">Todos</option>'+values.map(x=>'<option value="'+esc(x)+'" '+(current===x?'selected':'')+'>'+esc(x)+'</option>').join('');
  const total=state.data.assets.reduce((sum,a)=>sum+Number(a.quantity||1),0);
- const tabs=`<div class="navtabs mb-3"><button class="tab ${state.inventoryTab==='assets'?'active':''}" data-action="inventory-tab" data-tab="assets">${icon('package',15)} Equipamentos</button><button class="tab ${state.inventoryTab==='movements'?'active':''}" data-action="inventory-tab" data-tab="movements">${icon('refresh',15)} Movimentações</button><button class="tab ${state.inventoryTab==='maintenance'?'active':''}" data-action="inventory-tab" data-tab="maintenance">${icon('settings',15)} Manutenções</button></div>`;
- const actions=canEditInventory()?`<button class="btn outline" data-action="import">${icon('upload',16)} Importar CSV</button><button class="btn primary" data-action="new-asset">${icon('plus',16)} Novo equipamento</button>`:'';
+ const tabs=`<div class="navtabs mb-3"><button class="tab ${state.inventoryTab==='assets'?'active':''}" data-action="inventory-tab" data-tab="assets">${icon('package',15)} Equipamentos</button><button class="tab ${state.inventoryTab==='stock'?'active':''}" data-action="inventory-tab" data-tab="stock">${icon('package',15)} Estoque por quantidade</button><button class="tab ${state.inventoryTab==='movements'?'active':''}" data-action="inventory-tab" data-tab="movements">${icon('refresh',15)} Movimentações</button><button class="tab ${state.inventoryTab==='maintenance'?'active':''}" data-action="inventory-tab" data-tab="maintenance">${icon('settings',15)} Manutenções</button></div>`;
+ const stockTab=state.inventoryTab==='stock';
+ const actions=canEditInventory()?(stockTab?(state.stockMigrationMissing?'':`<button class="btn primary" data-action="new-stock-item">${icon('plus',16)} Novo item por quantidade</button>`):`<button class="btn outline" data-action="import">${icon('upload',16)} Importar CSV</button><button class="btn primary" data-action="new-asset">${icon('plus',16)} Novo equipamento</button>`):'';
  let body='';
- if(state.inventoryTab==='assets'){
+ if(stockTab){
+  body=stockItemsPage();
+ }else if(state.inventoryTab==='assets'){
   body=`<div class="toolbar asset-filters">${searchbar('Buscar GL, modelo, série, responsável...')}
   <label class="asset-filter">Categoria<select class="select" data-asset-filter="category">${options(cats,filters.category)}</select></label>
   <label class="asset-filter">Setor<select class="select" data-asset-filter="sector">${options(sectors,filters.sector)}</select></label>
@@ -127,9 +141,9 @@ function inventoryPage(){
   body=`<div class="toolbar">${canEditInventory()?`<button class="btn primary" data-action="new-maintenance">${icon('plus',15)} Registrar manutenção</button>`:''}<button class="btn outline" data-action="report" data-report="manutencoes">${icon('download',15)} PDF de manutenções</button></div>
   <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Data</th><th>Patrimônio</th><th>Manutenção</th><th>Responsável</th><th>Situação</th></tr></thead><tbody>${state.data.maintenance.map(x=>{const a=state.data.assets.find(a=>a.id===x.asset_id);return `<tr><td>${dateShort(x.opened_at+'T12:00:00')}</td><td><button class="linkrow" data-action="asset-detail" data-id="${esc(x.asset_id)}">${esc(a?.tag||'—')}</button></td><td><strong>${esc(x.title)}</strong><div class="cell-secondary">${esc(x.action_taken)}</div></td><td>${esc(x.technician||'—')}</td><td>${chip(x.status)}</td></tr>`;}).join('')}</tbody></table>${state.data.maintenance.length?'':empty('Nenhuma manutenção registrada.','Os procedimentos aparecerão nesta aba.')}</div>`;
  }
- return `${pageHero('Patrimônio','Inventário de TI','Equipamentos da empresa com etiquetas GL, QR Code e histórico.',actions)}
+ return `${pageHero('Patrimônio','Inventário de TI',stockTab?'Itens de estoque registrados por quantidade.':'Equipamentos da empresa com etiquetas GL, QR Code e histórico.',actions)}
  ${state.inventoryMigrationMissing?'<div class="offline-notice mb-3">Execute a migração SQL do inventário GL no Supabase para habilitar cadastro e etiquetas.</div>':''}
- <div class="cards">${metric('Registros',state.data.assets.length,'package','Patrimônios cadastrados')}${metric('Unidades',total,'grid','Equipamentos e lotes antigos')}${metric('Movimentações',state.data.movements.length,'refresh','Transferências registradas')}${metric('Manutenções',state.data.maintenance.length,'settings','Histórico técnico')}</div>${tabs}${body}`;
+ ${stockTab?'':`<div class="cards">${metric('Registros',state.data.assets.length,'package','Patrimônios cadastrados')}${metric('Unidades',total,'grid','Equipamentos e lotes antigos')}${metric('Movimentações',state.data.movements.length,'refresh','Transferências registradas')}${metric('Manutenções',state.data.maintenance.length,'settings','Histórico técnico')}</div>`}${tabs}${body}`;
 }
 function activitiesPage(){const activities=[...state.data.activities].sort((a,b)=>String(b.date).localeCompare(String(a.date))).filter(a=>[a.title,a.category,a.sector,a.description].join(' ').toLowerCase().includes(state.search.toLowerCase()));const minutes=state.data.activities.reduce((sum,a)=>sum+Number(a.minutes||0),0);return `${pageHero('Rotina do suporte','Diário de atividades','Registre manutenções, apoio aos setores e trabalhos além dos chamados.',isAdmin()?`<button class="btn primary" data-action="new-activity">${icon('plus',16)} Nova atividade</button>`:'')}
  <div class="cards">${metric('Atividades',state.data.activities.length,'activity','Todos os registros')}${metric('Horas registradas',(minutes/60).toFixed(1).replace('.',',')+' h','clock','Soma de tempo informado')}${metric('Concluídas',state.data.activities.filter(a=>a.status==='Concluída').length,'check','Trabalhos finalizados')}${metric('Pendentes',state.data.activities.filter(a=>a.status!=='Concluída').length,'bell','Atividades em aberto')}</div>
@@ -274,6 +288,19 @@ function renderModal(){const m=state.modal;let title='',description='',body='',w
   description=u.full_name||'Colaborador';
   body=`<form id="form-delete-user" data-id="${esc(u.id)}" class="stack"><div class="auth-note"><strong>Atenção:</strong> a conta será excluída também da autenticação do Supabase e não poderá mais entrar. A ação é irreversível. Se houver chamados, mensagens, avaliações ou atendimentos vinculados, a exclusão será recusada para preservar o histórico; nesse caso, bloqueie a conta.</div><p><strong>${esc(u.full_name)}</strong> · ${esc(u.email)}</p><div class="field"><label for="delete-user-confirm">Digite EXCLUIR para confirmar</label><input class="input" id="delete-user-confirm" name="confirmation" type="text" autocomplete="off" pattern="EXCLUIR" placeholder="EXCLUIR" required></div><div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn danger" type="submit">Excluir esta conta</button></div></form>`;
  }
+ if(m.type==='stock-item'){
+  if(!canEditInventory()||state.stockMigrationMissing)return '';
+  const item=state.data.stock_items.find(item=>item.id===m.id);
+  if(m.id&&!item)return '';
+  title=item?'Editar item de estoque':'Novo item por quantidade';
+  description='O item será registrado no estoque sem etiqueta patrimonial.';
+  body=`<form id="form-stock-item" data-id="${esc(item?.id||'')}" class="stack">
+   ${field('name','Nome do item','text',item?.name,'required maxlength="120" placeholder="Ex.: Cabo HDMI"')}
+   ${field('quantity','Quantidade','number',item?.quantity??1,'required min="0" max="2147483647" step="1"')}
+   ${field('location','Localização (opcional)','text',item?.location??'Estoque de TI','maxlength="120"')}
+   <div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Salvar item</button></div>
+  </form>`;
+ }
  if(m.type==='asset-detail'){
   if(!canViewInventory())return '';
   const a=state.data.assets.find(a=>a.id===m.id);if(!a)return '';
@@ -361,7 +388,7 @@ async function init(){
   if(recovering){state.authView='reset';authPage();return;}
   if(cloud.session){
    try{await loadAccount();return;}
-   catch(e){const cached=JSON.parse(localStorage.getItem('goat-ti-offline-profile')||'null');if(!navigator.onLine&&cached&&cached.id===cloud.userId&&cached.status==='ativo'){state.profile=cached;state.user={id:cached.id};state.role=cached.role;state.queue=await storage.queueList();state.data={timeEntries:[],assetEvents:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};renderShell();return;}toast('Sessão indisponível. Entre novamente.','error');}
+   catch(e){const cached=JSON.parse(localStorage.getItem('goat-ti-offline-profile')||'null');if(!navigator.onLine&&cached&&cached.id===cloud.userId&&cached.status==='ativo'){state.profile=cached;state.user={id:cached.id};state.role=cached.role;state.queue=await storage.queueList();state.data={timeEntries:[],assetEvents:[],stock_items:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};renderShell();return;}toast('Sessão indisponível. Entre novamente.','error');}
   }
  }
  if(state.assetDeepLink)state.authView='login';
@@ -371,7 +398,7 @@ async function startDemo(role){const box=await storage.get('demo-data');state.da
 async function loadAccount(){const profile=await cloud.profile();if(!profile)throw new Error('Perfil ainda não foi criado.');state.profile=profile;state.role=profile.role;state.user={id:profile.id};localStorage.setItem('goat-ti-offline-profile',JSON.stringify(profile));if(profile.status!=='ativo'){renderPending();return;}state.queue=await storage.queueList();state.seenPendingUsers.clear();state.pendingUsersInitialized=false;await refreshCloud();startPolling();startTimerDisplay();await flushQueue();openDeepLinkedAsset();showReviewPromptIfNeeded();}
 function renderPending(){app.innerHTML=`<div class="auth-page"><div class="auth-showcase"><div class="auth-showcase-inner"><h1>Seu acesso está <span class="auth-accent">${esc(state.profile.status==='bloqueado'?'bloqueado':'pendente de regularização')}.</span></h1><p>Seu cadastro não está ativo. Entre em contato com a equipe de TI para verificar a situação.</p></div></div><div class="auth-content"><div class="auth-box"><div class="auth-logo">GOATi Manager</div><h2>${state.profile.status==='bloqueado'?'Acesso bloqueado':'Cadastro pendente'}</h2><p>Entre em contato com a equipe de TI da organização, se necessário.</p><button class="btn outline" data-action="logout">Sair da conta</button></div></div></div>`;}
 async function refreshCloud(){if(!configured||!state.user||state.profile.status!=='ativo')return;
- const [tickets,assets,movements,maintenance,activities,reviews,messages,profiles,cloudGuides,timeEntries,assetEvents]=await Promise.all([
+ const [tickets,assets,movements,maintenance,activities,reviews,messages,profiles,cloudGuides,timeEntries,assetEvents,stock_items]=await Promise.all([
   cloud.listAll('tickets',{params:{order:'created_at.desc',limit:'1000'}}),
   canViewInventory()?cloud.listAll('assets',{params:{order:'tag.asc',limit:'3000'}}):Promise.resolve([]),
   canViewInventory()?cloud.listAll('asset_movements',{params:{order:'created_at.desc',limit:'2000'}}):Promise.resolve([]),
@@ -382,9 +409,15 @@ async function refreshCloud(){if(!configured||!state.user||state.profile.status!
   canManage()?cloud.listAll('profiles',{params:{order:'created_at.desc',limit:'1000'}}):Promise.resolve([state.profile]),
   cloud.listAll('guides',{params:{order:'created_at.desc',limit:'500'}}),
   canManage()?cloud.listAll('ticket_time_entries',{params:{order:'started_at.desc',limit:'5000'}}).then(rows=>{state.timerMigrationMissing=false;return rows;}).catch(e=>{if(/PGRST205|schema cache|Could not find the table|42P01|relation.*does not exist/i.test(e.message)){state.timerMigrationMissing=true;return [];}throw e;}):Promise.resolve([]),
-  canViewInventory()?cloud.listAll('asset_events',{params:{order:'created_at.desc',limit:'5000'}}).then(rows=>{state.inventoryMigrationMissing=false;return rows;}).catch(e=>{if(/PGRST205|schema cache|Could not find the table|42P01|relation.*does not exist/i.test(e.message)){state.inventoryMigrationMissing=true;return [];}throw e;}):Promise.resolve([])
+  canViewInventory()?cloud.listAll('asset_events',{params:{order:'created_at.desc',limit:'5000'}}).then(rows=>{state.inventoryMigrationMissing=false;return rows;}).catch(e=>{if(/PGRST205|schema cache|Could not find the table|42P01|relation.*does not exist/i.test(e.message)){state.inventoryMigrationMissing=true;return [];}throw e;}):Promise.resolve([]),
+  canViewInventory()?cloud.listAll('stock_items',{params:{order:'id.asc'}}).then(rows=>{
+   state.stockMigrationMissing=false;return rows;
+  }).catch(error=>{
+   if(!/PGRST205|schema cache|Could not find the table|42P01|relation.*does not exist/i.test(error.message))throw error;
+   state.stockMigrationMissing=true;return [];
+  }):Promise.resolve([])
  ]);
- const groups={tickets,assets,movements,maintenance,activities,reviews,messages,profiles,guides:cloudGuides,timeEntries,assetEvents};state.data=Object.fromEntries(Object.entries(groups).map(([k,v])=>[k,Array.isArray(v)?v:[]]));state.selectedTicketIds=new Set([...state.selectedTicketIds].filter(id=>state.data.tickets.some(t=>t.id===id)));state.selectedAssetIds=new Set([...state.selectedAssetIds].filter(id=>state.data.assets.some(a=>a.id===id)));state.queue=await storage.queueList();rememberPendingProfiles(profiles);
+ const groups={tickets,assets,movements,maintenance,activities,reviews,messages,profiles,guides:cloudGuides,timeEntries,assetEvents,stock_items};state.data=Object.fromEntries(Object.entries(groups).map(([k,v])=>[k,Array.isArray(v)?v:[]]));state.selectedTicketIds=new Set([...state.selectedTicketIds].filter(id=>state.data.tickets.some(t=>t.id===id)));state.selectedAssetIds=new Set([...state.selectedAssetIds].filter(id=>state.data.assets.some(a=>a.id===id)));state.queue=await storage.queueList();rememberPendingProfiles(profiles);
  if(!state.lastNotified.size)tickets.forEach(t=>state.lastNotified.add(t.id));
  renderShell();}
 async function checkEmployeeReviewUpdates(){
@@ -398,7 +431,7 @@ async function checkEmployeeReviewUpdates(){
  if(!state.user||userId()!==uid||canManage())return;
  if(!profile||profile.status!=='ativo'){
   state.profile=profile||{...state.profile,status:'bloqueado'};
-  state.data={timeEntries:[],assetEvents:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};
+  state.data={timeEntries:[],assetEvents:[],stock_items:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};
   renderPending();return;
  }
  const updated=tickets.some(t=>state.data.tickets.find(old=>old.id===t.id)?.status!==t.status)
@@ -526,6 +559,9 @@ async function handleAction(el,event){const act=el.dataset.action;
  if(act==='select-visible-tickets'&&isAdmin()){document.querySelectorAll('input[data-action="select-ticket"]').forEach(input=>{if(state.data.tickets.some(t=>t.id===input.dataset.id))state.selectedTicketIds.add(input.dataset.id);});renderShell();return;}
  if(act==='delete-selected-tickets'&&isAdmin()){const ids=[...state.selectedTicketIds].filter(id=>state.data.tickets.some(t=>t.id===id));if(!ids.length){toast('Selecione pelo menos um chamado.','error');return;}state.modal={type:'delete-tickets',ids};renderShell();return;}
  if(act==='ask-delete-ticket'&&isAdmin()){const id=el.dataset.id;if(!state.data.tickets.some(t=>t.id===id))return;state.modal={type:'delete-tickets',ids:[id]};renderShell();return;}
+ if((act==='new-stock-item'||act==='edit-stock-item')&&canEditInventory()&&!state.stockMigrationMissing){
+  state.modal={type:'stock-item',id:el.dataset.id};renderShell();return;
+ }
  if(act==='new-asset'&&canEditInventory()){requireInventoryReady();state.modal={type:'asset'};renderShell();return;}
  if(act==='asset-detail'&&canViewInventory()){
   if(!state.data.assets.some(a=>a.id===el.dataset.id))return;
@@ -610,7 +646,7 @@ async function handleAction(el,event){const act=el.dataset.action;
  if(act==='demo-login'){await startDemo(el.dataset.role);return;}
  if(act==='auth-view'){state.authEmail=document.getElementById('f-email')?.value.trim()||state.authEmail;state.authView=el.dataset.view;state.authLoginFailed=false;authPage();return;}
  if(act==='auth-retry'){state.authLoginFailed=false;authPage();document.getElementById('f-password')?.focus();return;}
- if(act==='logout'){if(configured)await cloud.signout();state.user=null;state.profile=null;state.role=null;state.data={timeEntries:[],assetEvents:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};state.queue=[];state.selectedTicketIds.clear();state.selectedAssetIds.clear();state.importPreview=null;state.reviewPromptShown.clear();state.seenPendingUsers.clear();state.pendingUsersInitialized=false;state.modal=null;state.authView='signup';state.authEmail='';state.authLoginFailed=false;state.lastNotified.clear();authPage();return;}
+ if(act==='logout'){if(configured)await cloud.signout();state.user=null;state.profile=null;state.role=null;state.data={timeEntries:[],assetEvents:[],stock_items:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]};state.queue=[];state.selectedTicketIds.clear();state.selectedAssetIds.clear();state.importPreview=null;state.reviewPromptShown.clear();state.seenPendingUsers.clear();state.pendingUsersInitialized=false;state.modal=null;state.authView='signup';state.authEmail='';state.authLoginFailed=false;state.lastNotified.clear();authPage();return;}
 }
 function isLoginCredentialFailure(error){return /invalid login credentials|invalid credentials|email not confirmed|invalid grant|invalid_grant/i.test(String(error?.message||''));}
 async function handleSubmit(form){const fd=formData(form);
@@ -657,6 +693,44 @@ async function handleSubmit(form){const fd=formData(form);
  if(form.id==='form-forgot'){await cloud.recover(String(fd.get('email')).trim());toast('Se o e-mail estiver cadastrado, você receberá um link de recuperação.','success');state.authView='login';authPage();return;}
  if(form.id==='form-reset'){if(fd.get('password')!==fd.get('confirm'))throw new Error('As senhas não conferem.');await cloud.changePassword(String(fd.get('password')));await cloud.signout();state.authView='login';authPage();toast('Senha alterada. Entre com sua nova senha.','success');return;}
  if(form.id==='form-ticket'){await submitTicket(fd);return;}
+ if(form.id==='form-stock-item'){
+  if(!canEditInventory()||state.stockMigrationMissing)throw new Error('O estoque por quantidade está indisponível.');
+  const id=form.dataset.id;
+  const existing=state.data.stock_items.find(item=>item.id===id);
+  if(id&&!existing)throw new Error('Item de estoque não encontrado.');
+  const name=String(fd.get('name')||'').trim();
+  const location=String(fd.get('location')||'').trim();
+  const rawQuantity=String(fd.get('quantity')||'').trim();
+  const quantity=Number(rawQuantity);
+  if(!name||name.length>120||location.length>120)throw new Error('Informe um nome e use até 120 caracteres por campo de texto.');
+  if(!rawQuantity||!Number.isInteger(quantity)||quantity<0||quantity>2147483647)throw new Error('Informe uma quantidade inteira válida.');
+  const sameText=(a,b)=>a.toLocaleLowerCase('pt-BR')===b.toLocaleLowerCase('pt-BR');
+  const duplicateMessage='Já existe um item com esse nome nessa localização. Edite a quantidade do item existente.';
+  if(state.data.stock_items.some(item=>item.id!==id&&sameText(item.name,name)&&sameText(item.location,location)))throw new Error(duplicateMessage);
+  const changes={name,location,quantity};
+  try{
+   if(existing){
+    const revision=existing.revision??0;
+    const saved=demo
+     ?await patchRecord('stock_items',id,changes)
+     :await cloud.update('stock_items',id,{...changes,revision:revision+1},{revision:'eq.'+revision});
+    if(!saved){
+     state.modal=null;
+     await reload();
+     throw new Error('O item mudou desde a última consulta. Confira a quantidade atual e tente novamente.');
+    }
+    state.data.stock_items=state.data.stock_items.map(item=>item.id===id?saved:item);
+   }else{
+    const saved=await createRecord('stock_items',{id:makeId(),...changes});
+    if(!demo)state.data.stock_items.unshift(saved);
+   }
+  }catch(error){
+   if(error.message.includes('stock_items_name_location_key'))throw new Error(duplicateMessage);
+   throw error;
+  }
+  state.modal=null;state.search='';renderShell();
+  toast(existing?'Item de estoque atualizado.':'Item de estoque cadastrado.','success');return;
+ }
  if(form.id==='form-asset'){
   if(!canEditInventory())throw new Error('Você não pode cadastrar ou editar patrimônios.');
   requireInventoryReady();

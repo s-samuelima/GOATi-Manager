@@ -34,6 +34,7 @@ export const seed={
  ],
  timeEntries:[],
  assetEvents:[],
+ stock_items:[],
  activities:[
   {id:'demo-act1',date:new Date().toISOString().slice(0,10),title:'Verificação de conectividade',category:'Redes',sector:'Comercial',minutes:40,description:'Diagnóstico de pontos de rede.',status:'Concluída'},
   {id:'demo-act2',date:new Date().toISOString().slice(0,10),title:'Conferência patrimonial',category:'Inventário',sector:'TI',minutes:70,description:'Inspeção de estações e periféricos.',status:'Em andamento'}
