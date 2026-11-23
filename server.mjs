@@ -5,7 +5,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=path.dirname(fileURLToPath(import.meta.url));
 const port=Number(process.env.PORT||4173);
-const allowed=new Set(['/','/index.html','/config.js','/manifest.webmanifest','/sw.js','/assets/goati-mark.png','/assets/goati-mascot.png','/assets/goati-192.png','/assets/goati-512.png','/src/main.js','/src/api.js','/src/storage.js','/src/reports.js','/src/seed.js','/src/styles.css']);
+const allowed=new Set(['/','/index.html','/config.js','/manifest.webmanifest','/sw.js','/assets/goati-mark.png','/assets/goati-mascot.png','/assets/goati-192.png','/assets/goati-512.png','/src/main.js','/src/api.js','/src/storage.js','/src/reports.js','/src/seed.js','/src/inventory.js','/src/vendor/qrcode.min.js','/src/styles.css']);
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json'};
 createServer(async(req,res)=>{
  try{

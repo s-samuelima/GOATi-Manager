@@ -117,3 +117,9 @@ Gestão tem acesso de leitura. Administradores podem cadastrar e editar; funcion
 **Nota sobre lotes:** equipamentos novos possuem uma etiqueta GL por unidade; na importação, linhas com Quantidade 2 ou mais são expandidas em etiquetas individuais, exceto itens com número de série (que exigem quantidade 1). Lotes antigos são preservados com suas quantidades para revisão física. QR e PDF são gerados localmente, sem depender de serviços de QR externos. Biblioteca QRCode.js vendorizada sob licença MIT em `src/vendor/`.
 
 Detalhes e checklist em [docs/INVENTARIO_GL_ITAM.md](docs/INVENTARIO_GL_ITAM.md).
+
+### Visão unificada do inventário
+
+O inventário apresenta estoque por quantidade e equipamentos com patrimônio na mesma lista, organizados por tipo (computadores/CPU, monitores, mouses, teclados, cabos e demais categorias). O total conta as unidades de cada cadastro, incluindo lotes, e o PDF completo usa a mesma contagem. A busca encontra nome, marca, código, responsável e localização.
+
+**Adicionar item** abre o cadastro simples por quantidade. Cadastro com patrimônio, etiquetas, importação CSV, movimentações e manutenções ficam em **Mais opções**. Os dados e as permissões existentes são preservados; a organização visual não converte nem duplica registros. Nos itens por quantidade, a categoria é reconhecida pelo início do nome, como “Teclado HP” ou “Cabo HDMI”.

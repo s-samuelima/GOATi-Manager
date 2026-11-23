@@ -8,6 +8,61 @@ const bytes=s=>{const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]
 export const ASSET_OWNER_NAME='Global Soluções Financeiras';
 const ASSET_OWNER_LABEL_LINES=['Global Soluções','Financeiras'];
 
+// A mesma visão reúne o estoque por quantidade e os bens já identificados.
+export const INVENTORY_CATEGORIES=[
+ {key:'computadores',label:'Computadores / CPU',prefix:'Computador',icon:'monitor',core:true,pattern:/^(computador(?:es)?|cpus?|desktops?|gabinetes?|pc)( |$)/},
+ {key:'monitores',label:'Monitores',prefix:'Monitor',icon:'monitor',core:true,pattern:/^(monitor(?:es)?|telas?)( |$)/},
+ {key:'mouses',label:'Mouses',prefix:'Mouse',icon:'mouse',core:true,pattern:/^mouses?( |$)/},
+ {key:'teclados',label:'Teclados',prefix:'Teclado',icon:'grid',core:true,pattern:/^teclados?( |$)/},
+ {key:'cabos',label:'Cabos',prefix:'Cabo',icon:'package',core:true,pattern:/^cabos?( |$)/},
+ {key:'notebooks',label:'Notebooks',prefix:'Notebook',icon:'monitor',pattern:/^(notebooks?|laptops?)( |$)/},
+ {key:'fones',label:'Fones e headsets',prefix:'Headset',icon:'headphones',pattern:/^(fones?|headsets?|headphones?)( |$)/},
+ {key:'fontes',label:'Fontes e carregadores',prefix:'Fonte',icon:'package',pattern:/^(fontes?|carregador(?:es)?|adaptador(?:es)?)( |$)/},
+ {key:'impressoras',label:'Impressoras',prefix:'Impressora',icon:'printer',pattern:/^impressoras?( |$)/},
+ {key:'celulares',label:'Celulares',prefix:'Celular',icon:'package',pattern:/^(celular(?:es)?|smartphones?|telefones?)( |$)/},
+ {key:'rede',label:'Rede e energia',prefix:'Switch',icon:'wifi',pattern:/^(switch(?:es)?|roteador(?:es)?|routers?|nobreaks?|estabilizadores?)( |$)/},
+ {key:'outros',label:'Outros itens',prefix:'',icon:'package',pattern:null}
+];
+
+export function inventoryCategory(item,source='stock'){
+ const text=normalize(source==='asset'?item.category:(item.category||item.name));
+ return INVENTORY_CATEGORIES.find(category=>category.pattern?.test(text))?.key||'outros';
+}
+
+/** Quantidades são unidades, nunca o número de linhas ou de etiquetas. */
+export function buildInventoryOverview(assets=[],stockItems=[],{category='all',search=''}={}){
+ const quantity=(value,fallback)=>{
+  if(value===undefined||value===null||value==='')return fallback;
+  const number=Number(value);
+  return Number.isInteger(number)&&number>=0?number:fallback;
+ };
+ const groups=INVENTORY_CATEGORIES.map(type=>({...type,items:[],quantity:0}));
+ const byCategory=new Map(groups.map(group=>[group.key,group]));
+ const items=[
+  ...assets.map(record=>({source:'asset',record,name:[record.category,record.brand,record.model].filter(Boolean).join(' ')||'Equipamento',quantity:quantity(record.quantity,1)})),
+  ...stockItems.map(record=>({source:'stock',record,name:record.name||'Item de estoque',quantity:quantity(record.quantity,0)}))
+ ].map(item=>{
+  const {record,source}=item;
+  const key=inventoryCategory(record,source);
+  return {...item,id:record.id,key:source+':'+record.id,category:key,location:record.location||'',tag:source==='asset'?record.tag||'':'',
+   searchText:normalize([item.name,byCategory.get(key).label,record.tag,record.legacy_tag,record.serial,record.owner,record.sector,record.location,record.status].join(' '))};
+ });
+ for(const item of items){const group=byCategory.get(item.category);group.items.push(item);group.quantity+=item.quantity;}
+ for(const group of groups)group.items.sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')||a.location.localeCompare(b.location,'pt-BR')||a.key.localeCompare(b.key));
+ const query=normalize(search);
+ const visibleGroups=groups.filter(group=>category==='all'||group.key===category).map(group=>{
+  const visible=group.items.filter(item=>!query||item.searchText.includes(query));
+  return {...group,items:visible,quantity:visible.reduce((sum,item)=>sum+item.quantity,0)};
+ }).filter(group=>group.items.length);
+ return {
+  groups,items:groups.flatMap(group=>group.items),visibleGroups,
+  visibleItems:visibleGroups.flatMap(group=>group.items),
+  totalQuantity:items.reduce((sum,item)=>sum+item.quantity,0),
+  totalRecords:items.length,
+  visibleQuantity:visibleGroups.reduce((sum,group)=>sum+group.quantity,0)
+ };
+}
+
 export const LABEL_SIZES=[
  {key:'50x30',name:'50 × 30 mm',width:50,height:30},
  {key:'60x30',name:'60 × 30 mm (padrão)',width:60,height:30},

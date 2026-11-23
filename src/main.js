@@ -1,7 +1,7 @@
 import {storage} from './storage.js';
 import {cloud,configured} from './api.js';
 import {downloadPDF,downloadCSV,parseCSV} from './reports.js';
-import {LABEL_SIZES,qrTarget,qrSvg,downloadAssetLabels,getNextDemoAssetTag,prepareAssetImport,assetsForGlRange,ASSET_OWNER_NAME} from './inventory.js';
+import {LABEL_SIZES,qrTarget,qrSvg,downloadAssetLabels,getNextDemoAssetTag,prepareAssetImport,assetsForGlRange,ASSET_OWNER_NAME,INVENTORY_CATEGORIES,buildInventoryOverview} from './inventory.js';
 import {seed,normalizeData,resolveHelpArticles,guides,cats,sectors,assetCats,statusNames,urgencyNames} from './seed.js';
 
 const app=document.getElementById('app');
@@ -19,7 +19,7 @@ const textarea=(name,label,value='',min=0)=>`<div class="field"><label for="f-${
 const chip=(v)=>`<span class="chip ${esc(v)}">${esc(statusNames[v]||urgencyNames[v]||v||'—')}</span>`;
 const cIcon={grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',ticket:'<path d="M4 7a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-3a2 2 0 0 0 0-4V7Z"/><path d="M12 6v2m0 3v2m0 3v2"/>',package:'<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="M3 8v9l9 5 9-5V8M12 13v9"/>',activity:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/>',book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14ZM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',star:'<path d="m12 3 2.7 5.8 6.3.9-4.5 4.5 1.1 6.3L12 17.5l-5.6 3 1.1-6.3L3 9.7l6.3-.9L12 3Z"/>',users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',settings:'<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.75l.06.06-2.04 2.04-.06-.06a1.6 1.6 0 0 0-1.75-.32l-.09.04a1.6 1.6 0 0 0-.99 1.46V21H9.15v-.08a1.6 1.6 0 0 0-1-1.46l-.08-.04a1.6 1.6 0 0 0-1.75.32l-.06.06-2.04-2.04.06-.06A1.6 1.6 0 0 0 4.6 15l-.04-.09a1.6 1.6 0 0 0-1.46-.99H3V10.1h.1a1.6 1.6 0 0 0 1.46-.99L4.6 9a1.6 1.6 0 0 0-.32-1.75l-.06-.06 2.04-2.04.06.06a1.6 1.6 0 0 0 1.75.32l.09-.04a1.6 1.6 0 0 0 .99-1.46V4h5.7v.08a1.6 1.6 0 0 0 .99 1.46l.09.04a1.6 1.6 0 0 0 1.75-.32l.06-.06 2.04 2.04-.06.06A1.6 1.6 0 0 0 19.4 9l.04.09a1.6 1.6 0 0 0 1.46.99h.1v3.82h-.1a1.6 1.6 0 0 0-1.46.99L19.4 15Z"/>',bell:'<path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/>',moon:'<path d="M20 16.7A9 9 0 0 1 7.3 4 9 9 0 1 0 20 16.7Z"/>',plus:'<path d="M12 5v14M5 12h14"/>',search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',arrow:'<path d="M5 12h14m-6-6 6 6-6 6"/>',check:'<path d="m4 12 5 5L20 6"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',monitor:'<rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',wifi:'<path d="M2 8a15 15 0 0 1 20 0M5 12a11 11 0 0 1 14 0m-10 4a6 6 0 0 1 6 0M12 20h.01"/>',headphones:'<path d="M3 14v-3a9 9 0 0 1 18 0v3M5 13H3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3v-7H5Zm14 0h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3v-7h1Z"/>',printer:'<path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',gauge:'<path d="M5 18a9 9 0 1 1 14 0M12 13l4-4"/><path d="M4 20h16"/>',lock:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',close:'<path d="M18 6 6 18M6 6l12 12"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',download:'<path d="M12 3v13m-5-5 5 5 5-5M5 20h14"/>',upload:'<path d="M12 21V8m-5 5 5-5 5 5M5 4h14"/>',menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',refresh:'<path d="M20 11a8 8 0 0 0-14-5L4 8m0-5v5h5M4 13a8 8 0 0 0 14 5l2-2m0 5v-5h-5"/>',cloud:'<path d="M20 16a4 4 0 0 0-4-4h-1a6 6 0 0 0-11 2 4 4 0 0 0 0 8h16a3 3 0 0 0 0-6Z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-9h.01"/>',shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',chevron:'<path d="m9 18 6-6-6-6"/>',mouse:'<rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 2v8"/>','mouse-pointer':'<path d="m4 3 7 18 2.5-7.5L21 11 4 3Z"/>','cloud-off':'<path d="M8 8a6 6 0 0 1 10 4 4 4 0 0 1 2 7H7a4 4 0 0 1-2-7M3 3l18 18"/>','lock-keyhole':'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2"/>'};
 const icon=(name,size=18)=>`<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${cIcon[name]||cIcon.info}</svg>`;
-const state={view:'dashboard',search:'',filter:'all',period:'mensal',rangeFrom:'',rangeTo:'',inventoryTab:'assets',assetFilters:{category:'all',sector:'all',owner:'all',status:'all'},selectedAssetIds:new Set(),assetDeepLink:new URLSearchParams(location.search).get('patrimonio')||'',importPreview:null,inventoryMigrationMissing:false,stockMigrationMissing:false,modal:null,guideId:null,tab:'todos',mobile:false,
+const state={view:'dashboard',search:'',filter:'all',period:'mensal',rangeFrom:'',rangeTo:'',inventoryTab:'all',inventoryCategory:'all',assetFilters:{category:'all',sector:'all',owner:'all',status:'all'},selectedAssetIds:new Set(),assetDeepLink:new URLSearchParams(location.search).get('patrimonio')||'',importPreview:null,inventoryMigrationMissing:false,stockMigrationMissing:false,modal:null,guideId:null,tab:'todos',mobile:false,
  authView:'signup',authEmail:'',authLoginFailed:false,selectedTicketIds:new Set(),reviewPromptShown:new Set(),timerMigrationMissing:false,recovery:false,theme:localStorage.getItem('goat-ti-theme')||'dark',role:null,user:null,profile:null,
  data:{timeEntries:[],assetEvents:[],stock_items:[],tickets:[],assets:[],movements:[],maintenance:[],activities:[],reviews:[],messages:[],profiles:[],guides:[]},queue:[],noticePermission:typeof Notification!=='undefined'?Notification.permission:'indisponível',lastNotified:new Set(),seenPendingUsers:new Set(),pendingUsersInitialized:false,installPrompt:null,loading:false};
 const demo=!configured;
@@ -89,61 +89,51 @@ function searchbar(placeholder){return `<div class="search-wrap">${icon('search'
 function ticketsPage(){const queues=state.queue.filter(q=>q.owner===userId()).map(q=>({...q.payload,id:q.id,number:'Pendente',status:'pendente'}));const t=ticketsSorted([...ownTickets(),...queues]);const filtered=t.filter(x=>{const text=[x.title,x.description,x.requester_name,x.sector,x.number].join(' ').toLowerCase();return text.includes(state.search.toLowerCase())&&(state.filter==='all'||x.status===state.filter);});return `${pageHero('Atendimento',canManage()?'Central de chamados':'Meus chamados',canManage()?'Gerencie solicitações, prioridades e o histórico de suporte.':'Consulte suas solicitações e acompanhe o andamento de cada uma.',`<button class="btn primary" data-action="new-ticket">${icon('plus',16)} Novo chamado</button>`)}
  <div class="toolbar">${searchbar('Buscar por chamado, setor ou solicitante...')}<select class="select" id="filter-status" aria-label="Filtrar por status"><option value="all">Todos os status</option>${Object.entries({...statusNames,pendente:'Pendente de envio'}).map(([v,n])=>`<option value="${v}" ${state.filter===v?'selected':''}>${n}</option>`).join('')}</select><button class="btn outline" data-action="refresh">${icon('refresh',16)} Atualizar</button>${isAdmin()?`<button class="btn outline" data-action="select-visible-tickets" ${filtered.every(x=>state.selectedTicketIds.has(x.id))||!filtered.length?'disabled':''}>Marcar exibidos</button><button class="btn danger" data-action="delete-selected-tickets" ${!state.selectedTicketIds.size?'disabled':''}>Excluir selecionados (${state.selectedTicketIds.size})</button>`:''}</div>
  <div class="panel table-wrap"><table class="data-table"><thead><tr>${isAdmin()?'<th><span class="sr-only">Selecionar</span></th>':''}<th>Chamado</th>${canManage()?'<th>Solicitante</th>':''}<th>Categoria</th><th>Prioridade</th><th>Status</th>${canManage()?'<th>Tempo TI</th>':''}<th>Data</th></tr></thead><tbody>${filtered.map(t=>`<tr class="ticket-clickable" tabindex="0" data-action="ticket" data-id="${esc(t.id)}" aria-label="Abrir chamado ${esc(t.number||t.id)}: ${esc(t.title)}">${isAdmin()?`<td>${t.status!=='pendente'?`<input type="checkbox" aria-label="Selecionar chamado ${esc(t.number||t.id)}" data-action="select-ticket" data-id="${esc(t.id)}" ${state.selectedTicketIds.has(t.id)?'checked':''}>`:''}</td>`:''}<td><button class="linkrow" data-action="ticket" data-id="${esc(t.id)}" style="background:none;border:none;color:var(--text);text-align:left;cursor:pointer"><strong>#${esc(t.number||'...')} · ${esc(t.title)}</strong><div class="cell-secondary">${esc(t.description).slice(0,65)}${t.description?.length>65?'…':''}</div></button></td>${canManage()?`<td>${esc(t.requester_name)}</td>`:''}<td>${esc(t.category)}</td><td>${chip(t.urgency)}</td><td>${chip(t.status)}</td>${canManage()?`<td class="cell-secondary" data-live-ticket-time="${esc(t.id)}">${formatDuration(ticketTotalSeconds(t.id))}</td>`:''}<td class="cell-secondary">${dateShort(t.created_at)}</td></tr>`).join('')}</tbody></table>${filtered.length?'':empty('Nada encontrado.','Tente outro filtro ou abra um chamado.')}</div>`;}
-function stockItemsPage(){
- if(state.stockMigrationMissing)return '<div class="offline-notice">A atualização do banco de dados é necessária para acessar o estoque por quantidade.</div>';
+function inventoryMenu(){
  const editable=canEditInventory();
- const query=state.search.trim().toLocaleLowerCase('pt-BR');
- const items=state.data.stock_items.filter(item=>[item.name,item.location].join(' ').toLocaleLowerCase('pt-BR').includes(query))
-  .sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')||a.location.localeCompare(b.location,'pt-BR'));
- return `<div class="toolbar">${searchbar('Buscar item ou localização...')}</div>
- <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Item</th><th>Quantidade</th><th>Localização</th>${editable?'<th>Ações</th>':''}</tr></thead><tbody>
- ${items.map(item=>`<tr><td><strong>${esc(item.name)}</strong></td><td>${shortNum(item.quantity)} un.</td><td>${esc(item.location||'—')}</td>${editable?`<td><button class="btn outline small" data-action="edit-stock-item" data-id="${esc(item.id)}" aria-label="Editar ${esc(item.name)}">Editar</button></td>`:''}</tr>`).join('')}
- </tbody></table>${items.length?'':query?empty('Nenhum item encontrado.','Revise a pesquisa.'):empty('Nenhum item por quantidade.','Os itens cadastrados sem etiqueta aparecem aqui.')}</div>`;
+ return `<details class="inventory-menu"><summary class="btn outline">${icon('menu',17)} Mais opções</summary><div class="inventory-menu-items">
+  <button type="button" data-action="report" data-report="inventario">${icon('download',16)} Baixar inventário em PDF</button>
+  ${editable?`<button type="button" data-action="new-asset" ${state.inventoryMigrationMissing?'disabled':''}>${icon('plus',16)} Cadastrar com patrimônio</button>
+  <button type="button" data-action="inventory-labels" ${!state.data.assets.length?'disabled':''}>${icon('printer',16)} Imprimir etiquetas</button>
+  <button type="button" data-action="import" ${state.inventoryMigrationMissing?'disabled':''}>${icon('upload',16)} Importar patrimônios CSV</button>`:''}
+  <div class="inventory-menu-divider"></div>
+  <button type="button" data-action="inventory-tab" data-tab="movements">${icon('refresh',16)} Movimentações</button>
+  <button type="button" data-action="inventory-tab" data-tab="maintenance">${icon('settings',16)} Manutenções</button>
+ </div></details>`;
+}
+function inventoryHistoryPage(){
+ const movements=state.inventoryTab==='movements';
+ const rows=movements?state.data.movements:state.data.maintenance;
+ return `<div class="inventory-history-head"><button class="btn outline small" data-action="inventory-tab" data-tab="all">Todos os itens</button><h2>${movements?'Movimentações':'Manutenções'}</h2></div>
+ <div class="toolbar">${canEditInventory()?`<button class="btn primary" data-action="${movements?'new-movement':'new-maintenance'}">${icon('plus',16)} ${movements?'Registrar movimentação':'Registrar manutenção'}</button>`:''}<button class="btn outline" data-action="report" data-report="${movements?'movimentacoes':'manutencoes'}">${icon('download',16)} Baixar PDF</button></div>
+ <div class="panel table-wrap"><table class="data-table"><thead><tr>${movements?'<th>Data</th><th>Equipamento</th><th>Origem</th><th>Destino</th><th>Observações</th>':'<th>Data</th><th>Patrimônio</th><th>Manutenção</th><th>Responsável</th><th>Situação</th>'}</tr></thead><tbody>${rows.map(x=>{
+  const asset=state.data.assets.find(a=>a.id===x.asset_id);
+  const item=`<button class="linkrow" data-action="asset-detail" data-id="${esc(x.asset_id)}">${esc(asset?.tag||'—')}</button>`;
+  return movements?`<tr><td>${dateShort(x.movement_date+'T12:00:00')}</td><td>${item}</td><td>${esc(x.from_owner||x.from_sector||'—')}</td><td>${esc(x.to_owner||x.to_sector||'—')}</td><td>${esc(x.notes||'—')}</td></tr>`:
+   `<tr><td>${dateShort(x.opened_at+'T12:00:00')}</td><td>${item}</td><td><strong>${esc(x.title)}</strong><div class="cell-secondary">${esc(x.action_taken)}</div></td><td>${esc(x.technician||'—')}</td><td>${chip(x.status)}</td></tr>`;
+ }).join('')}</tbody></table>${rows.length?'':empty(movements?'Nenhuma movimentação registrada.':'Nenhuma manutenção registrada.','O histórico aparecerá aqui.')}</div>`;
 }
 function inventoryPage(){
- const filters=state.assetFilters;
- const cats=[...new Set(state.data.assets.map(a=>a.category).filter(Boolean))].sort();
- const sectors=[...new Set(state.data.assets.map(a=>a.sector).filter(Boolean))].sort();
- const owners=[...new Set(state.data.assets.map(a=>a.owner).filter(Boolean))].sort();
- const statuses=[...new Set(state.data.assets.map(a=>a.status).filter(Boolean))].sort();
- const match=(value,selected)=>selected==='all'||value===selected;
- const found=state.data.assets.filter(a=>[
-  a.tag,a.legacy_tag,a.category,a.brand,a.model,a.serial,a.owner,a.sector,a.location
- ].join(' ').toLowerCase().includes(state.search.toLowerCase())
- &&match(a.category,filters.category)&&match(a.sector,filters.sector)
- &&match(a.owner,filters.owner)&&match(a.status,filters.status));
- const options=(values,current)=>'<option value="all">Todos</option>'+values.map(x=>'<option value="'+esc(x)+'" '+(current===x?'selected':'')+'>'+esc(x)+'</option>').join('');
- const total=state.data.assets.reduce((sum,a)=>sum+Number(a.quantity||1),0);
- const tabs=`<div class="navtabs mb-3"><button class="tab ${state.inventoryTab==='assets'?'active':''}" data-action="inventory-tab" data-tab="assets">${icon('package',15)} Equipamentos</button><button class="tab ${state.inventoryTab==='stock'?'active':''}" data-action="inventory-tab" data-tab="stock">${icon('package',15)} Estoque por quantidade</button><button class="tab ${state.inventoryTab==='movements'?'active':''}" data-action="inventory-tab" data-tab="movements">${icon('refresh',15)} Movimentações</button><button class="tab ${state.inventoryTab==='maintenance'?'active':''}" data-action="inventory-tab" data-tab="maintenance">${icon('settings',15)} Manutenções</button></div>`;
- const stockTab=state.inventoryTab==='stock';
- const actions=canEditInventory()?(stockTab?(state.stockMigrationMissing?'':`<button class="btn primary" data-action="new-stock-item">${icon('plus',16)} Novo item por quantidade</button>`):`<button class="btn outline" data-action="import">${icon('upload',16)} Importar CSV</button><button class="btn primary" data-action="new-asset">${icon('plus',16)} Novo equipamento</button>`):'';
- let body='';
- if(stockTab){
-  body=stockItemsPage();
- }else if(state.inventoryTab==='assets'){
-  body=`<div class="toolbar asset-filters">${searchbar('Buscar GL, modelo, série, responsável...')}
-  <label class="asset-filter">Categoria<select class="select" data-asset-filter="category">${options(cats,filters.category)}</select></label>
-  <label class="asset-filter">Setor<select class="select" data-asset-filter="sector">${options(sectors,filters.sector)}</select></label>
-  <label class="asset-filter">Responsável<select class="select" data-asset-filter="owner">${options(owners,filters.owner)}</select></label>
-  <label class="asset-filter">Situação<select class="select" data-asset-filter="status">${options(statuses,filters.status)}</select></label>
-  <button class="btn outline" data-action="report" data-report="inventario">${icon('download',15)} Relatório PDF</button>
-  ${canEditInventory()?`<button class="btn outline" data-action="labels-selected" ${!state.selectedAssetIds.size?'disabled':''}>Etiquetas selecionadas (${state.selectedAssetIds.size})</button><button class="btn outline" data-action="labels-visible" ${!found.length?'disabled':''}>Etiquetas exibidas (${found.length})</button><button class="btn outline" data-action="labels-range">Por número GL</button><button class="btn outline" data-action="clear-selected-assets" ${!state.selectedAssetIds.size?'disabled':''}>Limpar seleção</button>`:''}</div>
-  <div class="panel table-wrap"><table class="data-table"><thead><tr>${canEditInventory()?`<th><label class="asset-select-all"><input type="checkbox" data-action="select-all-assets" aria-label="Selecionar todos os patrimônios exibidos" ${found.length&&found.every(a=>state.selectedAssetIds.has(a.id))?'checked':''} ${!found.length?'disabled':''}> Todos</label></th>`:''}<th>Patrimônio</th><th>Equipamento</th><th>Responsável</th><th>Setor</th><th>Localização</th><th>Unid.</th><th>Status</th></tr></thead><tbody>
-  ${found.map(a=>`<tr class="asset-clickable" tabindex="0" data-action="asset-detail" data-id="${esc(a.id)}" aria-label="Abrir patrimônio ${esc(a.tag)}">
-  ${canEditInventory()?`<td><input type="checkbox" data-action="select-asset" data-id="${esc(a.id)}" aria-label="Selecionar patrimônio ${esc(a.tag)}" ${state.selectedAssetIds.has(a.id)?'checked':''}></td>`:''}
-  <td><strong>${esc(a.tag)}</strong>${a.legacy_tag?`<small class="cell-secondary">Antiga: ${esc(a.legacy_tag)}</small>`:''}</td>
-  <td><strong>${esc(a.category)} · ${esc(a.brand)}</strong><div class="cell-secondary">${esc(a.model)} ${a.serial?'· Série '+esc(a.serial):''}</div></td>
-  <td>${esc(a.owner||'—')}</td><td>${esc(a.sector||'—')}</td><td>${esc(a.location||'—')}</td><td>${esc(a.quantity||1)}</td><td>${chip(a.status)}</td></tr>`).join('')}</tbody></table>${found.length?'':empty('Nenhum patrimônio encontrado.','Revise os filtros ou cadastre um equipamento.')}</div>`;
- }else if(state.inventoryTab==='movements'){
-  body=`<div class="toolbar">${canEditInventory()?`<button class="btn primary" data-action="new-movement">${icon('plus',15)} Registrar movimentação</button>`:''}<button class="btn outline" data-action="report" data-report="movimentacoes">${icon('download',15)} PDF de movimentações</button></div>
-  <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Data</th><th>Equipamento</th><th>Origem</th><th>Destino</th><th>Observações</th></tr></thead><tbody>${state.data.movements.map(x=>{const a=state.data.assets.find(a=>a.id===x.asset_id);return `<tr><td>${dateShort(x.movement_date+'T12:00:00')}</td><td><button class="linkrow" data-action="asset-detail" data-id="${esc(x.asset_id)}">${esc(a?.tag||'—')}</button></td><td>${esc(x.from_owner||x.from_sector||'—')}</td><td>${esc(x.to_owner||x.to_sector||'—')}</td><td>${esc(x.notes||'—')}</td></tr>`;}).join('')}</tbody></table>${state.data.movements.length?'':empty('Nenhuma movimentação registrada.','O histórico aparecerá nesta aba.')}</div>`;
- }else{
-  body=`<div class="toolbar">${canEditInventory()?`<button class="btn primary" data-action="new-maintenance">${icon('plus',15)} Registrar manutenção</button>`:''}<button class="btn outline" data-action="report" data-report="manutencoes">${icon('download',15)} PDF de manutenções</button></div>
-  <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Data</th><th>Patrimônio</th><th>Manutenção</th><th>Responsável</th><th>Situação</th></tr></thead><tbody>${state.data.maintenance.map(x=>{const a=state.data.assets.find(a=>a.id===x.asset_id);return `<tr><td>${dateShort(x.opened_at+'T12:00:00')}</td><td><button class="linkrow" data-action="asset-detail" data-id="${esc(x.asset_id)}">${esc(a?.tag||'—')}</button></td><td><strong>${esc(x.title)}</strong><div class="cell-secondary">${esc(x.action_taken)}</div></td><td>${esc(x.technician||'—')}</td><td>${chip(x.status)}</td></tr>`;}).join('')}</tbody></table>${state.data.maintenance.length?'':empty('Nenhuma manutenção registrada.','Os procedimentos aparecerão nesta aba.')}</div>`;
- }
- return `${pageHero('Patrimônio','Inventário de TI',stockTab?'Itens de estoque registrados por quantidade.':'Equipamentos da empresa com etiquetas GL, QR Code e histórico.',actions)}
- ${state.inventoryMigrationMissing?'<div class="offline-notice mb-3">Execute a migração SQL do inventário GL no Supabase para habilitar cadastro e etiquetas.</div>':''}
- ${stockTab?'':`<div class="cards">${metric('Registros',state.data.assets.length,'package','Patrimônios cadastrados')}${metric('Unidades',total,'grid','Equipamentos e lotes antigos')}${metric('Movimentações',state.data.movements.length,'refresh','Transferências registradas')}${metric('Manutenções',state.data.maintenance.length,'settings','Histórico técnico')}</div>`}${tabs}${body}`;
+ const overview=buildInventoryOverview(state.data.assets,state.data.stock_items,{category:state.inventoryCategory,search:state.search});
+ const editable=canEditInventory();
+ const actions=`${editable?`<button class="btn primary" data-action="new-stock-item" ${state.stockMigrationMissing?'disabled':''}>${icon('plus',17)} Adicionar item</button>`:''}${inventoryMenu()}`;
+ const header=`<header class="inventory-header"><div><h1>Inventário de TI</h1><p>Todos os itens, organizados por categoria.</p></div><div class="inventory-header-actions">${actions}</div></header>`;
+ if(['movements','maintenance'].includes(state.inventoryTab))return `<section class="inventory-page">${header}${inventoryHistoryPage()}</section>`;
+ const category=INVENTORY_CATEGORIES.find(type=>type.key===state.inventoryCategory);
+ const categories=overview.groups.filter(group=>group.core||group.items.length||group.key===state.inventoryCategory);
+ const visibleRecords=overview.visibleItems.length;
+ const body=visibleRecords?`<div class="inventory-table-wrap"><table class="inventory-table"><thead><tr><th scope="col">Item</th><th scope="col" class="inventory-quantity">Quantidade</th><th scope="col" class="inventory-location">Localização</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>
+ ${overview.visibleGroups.map(group=>`<tbody>${state.inventoryCategory==='all'?`<tr class="inventory-group-heading"><th scope="rowgroup" colspan="4"><span>${esc(group.label)}</span><small>${shortNum(group.quantity)} un.</small></th></tr>`:''}
+ ${group.items.map(item=>`<tr><td><strong class="inventory-item-name">${esc(item.name)}</strong>${item.tag?`<span class="inventory-item-meta">${esc(item.tag)}</span>`:''}<span class="inventory-mobile-location">${esc(item.location||'Sem localização')}</span></td><td class="inventory-quantity"><strong>${shortNum(item.quantity)}</strong><span> un.</span></td><td class="inventory-location">${esc(item.location||'—')}</td><td class="inventory-row-action">${item.source==='asset'?`<button class="inventory-item-action" data-action="asset-detail" data-id="${esc(item.id)}" aria-label="Ver detalhes de ${esc(item.name)}">Detalhes</button>`:editable?`<button class="inventory-item-action" data-action="edit-stock-item" data-id="${esc(item.id)}" aria-label="Editar ${esc(item.name)}">Editar</button>`:''}</td></tr>`).join('')}</tbody>`).join('')}</table></div>`:
+ `<div class="inventory-empty">${icon('package',32)}<h3>${state.search?'Nenhum item encontrado':category?'Nenhum item nesta categoria':'Seu inventário começa aqui'}</h3><p>${state.search?'Tente outro nome, marca ou localização.':category?'Os itens cadastrados nesta categoria aparecerão aqui.':'Adicione os equipamentos e materiais para organizar suas quantidades.'}</p>${editable&&!state.search?'<button class="btn outline" data-action="new-stock-item" '+(state.stockMigrationMissing?'disabled':'')+'>Adicionar item</button>':''}</div>`;
+ return `<section class="inventory-page">${header}
+ <div class="inventory-total"><strong>${shortNum(overview.totalQuantity)}</strong><span>unidades no inventário</span><small>${shortNum(overview.totalRecords)} ${overview.totalRecords===1?'registro':'registros'}</small></div>
+ ${state.stockMigrationMissing?'<div class="offline-notice">O estoque por quantidade está temporariamente indisponível. Os patrimônios continuam visíveis.</div>':''}
+ ${state.inventoryMigrationMissing?'<div class="offline-notice">O cadastro de patrimônios está temporariamente indisponível.</div>':''}
+ <div class="inventory-layout"><nav class="inventory-categories" aria-label="Categorias do inventário"><span class="inventory-category-label">Categorias</span>
+ <button class="inventory-category ${state.inventoryCategory==='all'?'active':''}" data-action="inventory-category" data-category="all" aria-pressed="${state.inventoryCategory==='all'}">${icon('package',18)}<span>Todos os itens</span><b>${shortNum(overview.totalQuantity)}</b></button>
+ ${categories.map(group=>`<button class="inventory-category ${state.inventoryCategory===group.key?'active':''}" data-action="inventory-category" data-category="${group.key}" aria-pressed="${state.inventoryCategory===group.key}">${icon(group.icon,18)}<span>${esc(group.label)}</span><b>${shortNum(group.quantity)}</b></button>`).join('')}</nav>
+ <div class="inventory-list panel"><div class="inventory-list-head"><div><h2>${esc(category?.label||'Todos os itens')}</h2><p>${shortNum(overview.visibleQuantity)} ${overview.visibleQuantity===1?'unidade':'unidades'}${state.search?' encontradas':''}</p></div><div class="inventory-search">${searchbar('Buscar item, marca ou localização...')}</div></div>${body}</div></div></section>`;
 }
 function activitiesPage(){const activities=[...state.data.activities].sort((a,b)=>String(b.date).localeCompare(String(a.date))).filter(a=>[a.title,a.category,a.sector,a.description].join(' ').toLowerCase().includes(state.search.toLowerCase()));const minutes=state.data.activities.reduce((sum,a)=>sum+Number(a.minutes||0),0);return `${pageHero('Rotina do suporte','Diário de atividades','Registre manutenções, apoio aos setores e trabalhos além dos chamados.',isAdmin()?`<button class="btn primary" data-action="new-activity">${icon('plus',16)} Nova atividade</button>`:'')}
  <div class="cards">${metric('Atividades',state.data.activities.length,'activity','Todos os registros')}${metric('Horas registradas',(minutes/60).toFixed(1).replace('.',',')+' h','clock','Soma de tempo informado')}${metric('Concluídas',state.data.activities.filter(a=>a.status==='Concluída').length,'check','Trabalhos finalizados')}${metric('Pendentes',state.data.activities.filter(a=>a.status!=='Concluída').length,'bell','Atividades em aberto')}</div>
@@ -153,7 +143,7 @@ function periodFilter(rows,prop='created_at'){const [a,b]=periodWindow();return 
 function reportsPage(){return `${pageHero('Gestão e indicadores','Central de relatórios','Gere PDFs reais com informações consolidadas para a gestão.')}
  <section class="panel panel-pad mb-3"><div class="form-grid"><div class="field"><label>Período</label><select class="select" id="report-period"><option value="diario" ${state.period==='diario'?'selected':''}>Diário (hoje)</option><option value="semanal" ${state.period==='semanal'?'selected':''}>Semanal (semana atual)</option><option value="mensal" ${state.period==='mensal'?'selected':''}>Mensal (mês atual)</option><option value="personalizado" ${state.period==='personalizado'?'selected':''}>Período personalizado</option></select></div><div class="field"><label>Relatórios</label><div class="muted text-sm" style="padding:10px">Baixe um relatório abaixo.</div></div>${state.period==='personalizado'?`${field('from','Data inicial','date',state.rangeFrom||today())}${field('to','Data final','date',state.rangeTo||today())}`:''}</div></section>
  <div class="report-list">
- ${[['chamados','Chamados e atendimentos','Quantidade, status, prioridade e histórico de solicitações.'],['atividades','Atividades de TI','Trabalhos realizados, setor e tempo registrado.'],['avaliacoes','Avaliações de atendimento','Satisfação e comentários associados aos chamados.'],['inventario','Inventário completo','Todos os patrimônios e lotes da organização, sem limitação por período.']].map(([type,title,desc])=>`<div class="report-card">${icon(type==='inventario'?'package':'file',25)}<div><b>${title}</b><small>${desc}</small></div><button class="btn primary small" data-action="report" data-report="${type}">${icon('download',15)} Baixar PDF</button></div>`).join('')}
+ ${[['chamados','Chamados e atendimentos','Quantidade, status, prioridade e histórico de solicitações.'],['atividades','Atividades de TI','Trabalhos realizados, setor e tempo registrado.'],['avaliacoes','Avaliações de atendimento','Satisfação e comentários associados aos chamados.'],['inventario','Inventário completo','Equipamentos, materiais e patrimônios com todas as quantidades.']].map(([type,title,desc])=>`<div class="report-card">${icon(type==='inventario'?'package':'file',25)}<div><b>${title}</b><small>${desc}</small></div><button class="btn primary small" data-action="report" data-report="${type}">${icon('download',15)} Baixar PDF</button></div>`).join('')}
  </div><div class="panel panel-pad mt-3"><h3>Como funcionam os PDFs?</h3><p class="muted text-sm mt-2">Os relatórios são gerados diretamente dos registros disponíveis, com data da emissão e filtros por período. As informações são apenas as que seu perfil tem permissão para consultar.</p></div>`;}
 function helpPage(){
  const articles=resolveHelpArticles(state.data?.guides,isAdmin());
@@ -292,10 +282,12 @@ function renderModal(){const m=state.modal;let title='',description='',body='',w
   if(!canEditInventory()||state.stockMigrationMissing)return '';
   const item=state.data.stock_items.find(item=>item.id===m.id);
   if(m.id&&!item)return '';
-  title=item?'Editar item de estoque':'Novo item por quantidade';
-  description='O item será registrado no estoque sem etiqueta patrimonial.';
+  title=item?'Editar item':'Adicionar item';
+  description='Informe o item e a quantidade disponível.';
+  const category=INVENTORY_CATEGORIES.find(type=>type.key===state.inventoryCategory);
+  const suggestedName=category?.prefix?category.prefix+' ':'';
   body=`<form id="form-stock-item" data-id="${esc(item?.id||'')}" class="stack">
-   ${field('name','Nome do item','text',item?.name,'required maxlength="120" placeholder="Ex.: Cabo HDMI"')}
+   ${field('name','Nome do item','text',item?.name??suggestedName,'required maxlength="120" placeholder="Ex.: Teclado HP, Mouse HP ou Cabo HDMI"')}
    ${field('quantity','Quantidade','number',item?.quantity??1,'required min="0" max="2147483647" step="1"')}
    ${field('location','Localização (opcional)','text',item?.location??'Estoque de TI','maxlength="120"')}
    <div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Salvar item</button></div>
@@ -330,6 +322,13 @@ function renderModal(){const m=state.modal;let title='',description='',body='',w
    +field('gl_to','Até o patrimônio GL (opcional)','text','','placeholder="Ex.: 30 ou GL-000030"')
    +'</div><p class="muted text-xs">Para imprimir apenas uma etiqueta, deixe o segundo campo vazio. O intervalo inclui somente patrimônios já cadastrados; confira a prévia antes de exportar o PDF.</p>'
    +'<div class="form-actions"><button class="btn outline" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Conferir etiquetas</button></div></form>';
+ }
+ if(m.type==='inventory-labels'){
+  if(!canEditInventory())return '';
+  title='Etiquetas de patrimônio';description='Escolha os patrimônios que deseja imprimir.';wide=true;
+  const assets=[...state.data.assets].sort((a,b)=>a.tag.localeCompare(b.tag));
+  body=`<div class="toolbar"><button class="btn primary" data-action="labels-selected" ${!state.selectedAssetIds.size?'disabled':''}>Imprimir selecionados (${state.selectedAssetIds.size})</button><button class="btn outline" data-action="labels-visible" ${!assets.length?'disabled':''}>Imprimir todos</button><button class="btn outline" data-action="labels-range">Por número GL</button><button class="btn outline" data-action="clear-selected-assets" ${!state.selectedAssetIds.size?'disabled':''}>Limpar seleção</button></div>
+   <div class="table-wrap"><table class="data-table"><thead><tr><th><label class="asset-select-all"><input type="checkbox" data-action="select-all-assets" aria-label="Selecionar todos os patrimônios exibidos" ${assets.length&&assets.every(a=>state.selectedAssetIds.has(a.id))?'checked':''} ${!assets.length?'disabled':''}> Todos</label></th><th>Patrimônio</th><th>Item</th></tr></thead><tbody>${assets.map(a=>`<tr class="asset-clickable inventory-label-row" data-id="${esc(a.id)}"><td><input type="checkbox" data-action="select-asset" data-id="${esc(a.id)}" aria-label="Selecionar patrimônio ${esc(a.tag)}" ${state.selectedAssetIds.has(a.id)?'checked':''}></td><td>${esc(a.tag)}</td><td>${esc([a.category,a.brand,a.model].filter(Boolean).join(' '))}</td></tr>`).join('')}</tbody></table></div>`;
  }
  if(m.type==='labels'){
   if(!canEditInventory())return '';
@@ -494,7 +493,7 @@ function report(kind){if(!canManage()&&!(canViewInventory()&&['inventario','movi
  else if(kind==='avaliacoes'){title=`Avaliações ${interval}`;headers=['Chamado','Data','Nota','Resolvido?','Comentário'];rows=revs.map(r=>{const t=state.data.tickets.find(t=>t.id===r.ticket_id);return [t?.number||'',dateShort(r.created_at),r.rating+'/5',r.resolved?'Sim':'Não',r.comment||'—'];});metrics=[['Avaliações',revs.length],['Média',revs.length?(revs.reduce((s,r)=>s+Number(r.rating),0)/revs.length).toFixed(2):'—']];}
  else if(kind==='movimentacoes'){title='Histórico de Movimentações';headers=['Data','Patrimônio','Origem','Destino','Observações'];rows=state.data.movements.map(x=>[dateShort(x.movement_date+'T12:00:00'),state.data.assets.find(a=>a.id===x.asset_id)?.tag||'',x.from_owner||x.from_sector,x.to_owner||x.to_sector,x.notes]);metrics=[['Transferências registradas',rows.length]];}
  else if(kind==='manutencoes'){title='Histórico de Manutenções';headers=['Data','Patrimônio','Atividade','Técnico','Status'];rows=state.data.maintenance.map(x=>[dateShort(x.opened_at+'T12:00:00'),state.data.assets.find(a=>a.id===x.asset_id)?.tag||'',x.title,x.technician,x.status]);metrics=[['Registros de manutenção',rows.length]];}
- else if(kind==='inventario'){title='Inventário Completo';headers=['Tag','Tipo','Marca','Modelo','Responsável','Situação'];rows=state.data.assets.map(a=>[a.tag,a.category,a.brand,a.model,a.owner||a.location,a.status+' · '+(a.quantity||1)+' un.']);metrics=[['Registros',state.data.assets.length],['Unidades',state.data.assets.reduce((s,a)=>s+Number(a.quantity||1),0)]];
+ else if(kind==='inventario'){const overview=buildInventoryOverview(state.data.assets,state.data.stock_items);title='Inventário Completo';headers=['Categoria','Item','Quantidade','Localização','Patrimônio'];rows=overview.items.map(item=>[INVENTORY_CATEGORIES.find(type=>type.key===item.category).label,item.name,item.quantity,item.location||'—',item.tag||'—']);metrics=[['Unidades',overview.totalQuantity],['Registros',overview.totalRecords]];
  details=state.data.assets.map(a=>({title:a.tag+' · '+a.category,lines:[
  'Marca: '+(a.brand||'—')+'  |  Modelo: '+(a.model||'—'),
  'Nº de série: '+(a.serial||'—')+'  |  Quantidade: '+(a.quantity||1),
@@ -562,6 +561,11 @@ async function handleAction(el,event){const act=el.dataset.action;
  if((act==='new-stock-item'||act==='edit-stock-item')&&canEditInventory()&&!state.stockMigrationMissing){
   state.modal={type:'stock-item',id:el.dataset.id};renderShell();return;
  }
+ if(act==='inventory-category'&&canViewInventory()){
+  if(el.dataset.category!=='all'&&!INVENTORY_CATEGORIES.some(type=>type.key===el.dataset.category))return;
+  state.inventoryCategory=el.dataset.category;renderShell();return;
+ }
+ if(act==='inventory-labels'&&canEditInventory()){state.modal={type:'inventory-labels'};renderShell();return;}
  if(act==='new-asset'&&canEditInventory()){requireInventoryReady();state.modal={type:'asset'};renderShell();return;}
  if(act==='asset-detail'&&canViewInventory()){
   if(!state.data.assets.some(a=>a.id===el.dataset.id))return;
@@ -620,7 +624,7 @@ async function handleAction(el,event){const act=el.dataset.action;
   const count=batch.length;state.importPreview=null;state.modal=null;
   await reload();toast(count+' patrimônio(s) importado(s) com código GL.','success');return;
  }
- if(act==='inventory-tab'){state.inventoryTab=el.dataset.tab;state.search='';state.filter='all';renderShell();return;}
+ if(act==='inventory-tab'&&canViewInventory()){state.inventoryTab=['movements','maintenance'].includes(el.dataset.tab)?el.dataset.tab:'all';state.search='';state.filter='all';renderShell();return;}
  if(act==='new-movement'&&canEditInventory()){requireInventoryReady();state.modal={type:'movement'};renderShell();return;}
  if(act==='new-maintenance'&&canEditInventory()){requireInventoryReady();state.modal={type:'maintenance'};renderShell();return;}
  if(act==='edit-asset'&&canEditInventory()){requireInventoryReady();state.modal={type:'asset',id:el.dataset.id};renderShell();return;}
