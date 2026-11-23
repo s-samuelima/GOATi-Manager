@@ -90,7 +90,7 @@ Admin pode selecionar e excluir chamados com confirmação. É necessário aplic
 
 ## Controle de tempo por chamado
 
-O administrador pode iniciar, pausar, retomar e finalizar o tempo gasto em cada atendimento, salvo no Supabase. O total aparece nos detalhes, na lista e no relatório PDF. **Execute a migração** `supabase/migrations/20261113_ticket_time_tracking.sql` no banco existente (não reaplique o schema.sql inteiro). Veja `docs/CONTROLE_TEMPO.md`. O funcionário pode avaliar o chamado resolvido na seção Avaliações.
+O administrador pode iniciar, pausar, retomar e finalizar o tempo gasto em cada atendimento, salvo no Supabase. O total permanece nos detalhes e na lista dentro do sistema; os PDFs não exibem os tempos. **Execute a migração** `supabase/migrations/20261113_ticket_time_tracking.sql` no banco existente (não reaplique o schema.sql inteiro). Veja `docs/CONTROLE_TEMPO.md`. O funcionário pode avaliar o chamado resolvido na seção Avaliações.
 
 ### Convite para avaliar chamados (v1.3.1)
 
@@ -123,3 +123,9 @@ Detalhes e checklist em [docs/INVENTARIO_GL_ITAM.md](docs/INVENTARIO_GL_ITAM.md)
 O inventário apresenta estoque por quantidade e equipamentos com patrimônio na mesma lista, organizados por tipo (computadores/CPU, monitores, mouses, teclados, cabos e demais categorias). O total conta as unidades de cada cadastro, incluindo lotes, e o PDF completo usa a mesma contagem. A busca encontra nome, marca, código, responsável e localização.
 
 **Adicionar item** abre o cadastro simples por quantidade. Cadastro com patrimônio, etiquetas, importação CSV, movimentações e manutenções ficam em **Mais opções**. Os dados e as permissões existentes são preservados; a organização visual não converte nem duplica registros. Nos itens por quantidade, a categoria é reconhecida pelo início do nome, como “Teclado HP” ou “Cabo HDMI”.
+
+### PDFs de chamados e atividades
+
+Em **Relatórios PDF → Chamados e atividades**, um único arquivo reúne duas seções com os registros do mesmo período: diário, semanal, mensal ou personalizado. O Diário de TI também oferece **PDF com chamados**. Os relatórios individuais continuam disponíveis.
+
+Os PDFs de chamados, atividades e o relatório conjunto não incluem duração, horas registradas ou totais de tempo. O acompanhamento de tempo continua disponível dentro do sistema, sem alterar os registros existentes.

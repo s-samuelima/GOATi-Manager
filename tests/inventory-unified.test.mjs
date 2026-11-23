@@ -76,7 +76,7 @@ test('PDF de inventário inclui estoque, patrimônio e a mesma soma da tela',()=
  }};
  const context=vm.createContext({state,buildInventoryOverview,INVENTORY_CATEGORIES,
   canManage:()=>true,canViewInventory:()=>true,periodFilter:()=>[],
-  now:()=>new Date().toISOString(),today:()=> '2026-11-23',dateLong:value=>value,
+  now:()=>new Date().toISOString(),today:()=> '2026-11-23',dateLong:value=>value,dateShort:value=>value,
   downloadPDF:value=>{exported=value;},toast:()=>{}});
  vm.runInContext(reportSource+";report('inventario');",context);
  assert.equal(exported.rows.length,3);

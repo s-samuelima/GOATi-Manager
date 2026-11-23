@@ -14,7 +14,7 @@ O script anterior `schema.sql` não deve ser reaplicado em um banco com dados.
 
 A duração é calculada pelo intervalo entre início e fim gravados no Supabase. Fechar o navegador não pausa a contagem. Cada técnico só pode ter um atendimento em execução por vez.
 
-Os detalhes do chamado mostram a duração e as sessões. O relatório PDF de chamados inclui duração por chamado e tempo total do período. A nota dada pelo solicitante aparece em **Avaliações** e, para administradores, nos detalhes do chamado.
+Os detalhes do chamado mostram a duração e as sessões para acompanhamento interno. Os PDFs de chamados, atividades e o relatório conjunto não incluem duração nem totais de tempo. Em **Relatórios PDF → Chamados e atividades**, os dois tipos de registro podem ser baixados juntos no mesmo arquivo e período. A nota dada pelo solicitante aparece em **Avaliações** e, para administradores, nos detalhes do chamado.
 
 ## Segurança e limitações
 - O registro de tempo é uma ação autenticada, restrita a administrador pela RPC.
